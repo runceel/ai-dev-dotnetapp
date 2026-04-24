@@ -30,6 +30,7 @@
 - UI Shell 設計（MudBlazor 基盤 + ナビゲーション Self-Registration）: [ui-shell-design.md](./ui-shell-design.md)
 - 設計方針コメント（Architect / Step 2.1）: Issue #1 [comment-id: 4311059746](https://github.com/runceel/ai-dev-dotnetapp/issues/1#issuecomment-4311059746)
 - 実装計画コメント（Developer / Step 2.2）: Issue #1 [comment-id: 4311073160](https://github.com/runceel/ai-dev-dotnetapp/issues/1#issuecomment-4311073160)
+- DB アクセス戦略（EF Core + InMemoryDatabase 採用方針 / 各モジュール Infrastructure 層実装の前提）: [data-access-strategy.md](./data-access-strategy.md)（Issue [#5](https://github.com/runceel/ai-dev-dotnetapp/issues/5)）
 
 ---
 
@@ -140,6 +141,8 @@ EventRegistration.sln
 | `<Module>.Domain` | エンティティ・値オブジェクト・ドメインサービス・ドメイン例外。フレームワーク非依存 | 空（`Class1.cs` 削除 + `.gitkeep` のみ） |
 | `<Module>.Application` | UseCase / アプリケーションサービス / 抽象（Repository インターフェース等） | Issue #1 時点では空。Issue #3 で **`SharedKernel.Application` に `Navigation/{INavigationItem,NavigationItem,NavigationMatch}.cs`** を、**`Events.Application` / `Registrations.Application` に `Navigation/<Module>NavigationExtensions.cs`** を追加（UI Shell の Self-Registration 機構） |
 | `<Module>.Infrastructure` | 永続化・外部 API・メッセージング等の具象実装 | 空（同上） |
+
+> Infrastructure プロジェクトへの `DbContext` 配置方針および DI 拡張メソッドパターン（`AddXxxModuleInfrastructure`）の詳細は [data-access-strategy.md](./data-access-strategy.md) を参照（Issue [#5](https://github.com/runceel/ai-dev-dotnetapp/issues/5)）。
 
 ### 2.3 モジュール別の位置づけ
 
@@ -261,6 +264,8 @@ sequenceDiagram
 | CON-007 | `SharedKernel.Domain` は参照ゼロ | `dotnet list reference` 確認 |
 | CON-008 | 業務モジュール間の直接参照禁止 | `dotnet list reference` 確認 |
 | CON-009 | モジュール系プロジェクトを Aspire リソースとして登録しない | AppHost コードレビュー |
+
+> DB アクセスは EF Core + InMemoryDatabase をサンプル用途に採用（詳細: [data-access-strategy.md](./data-access-strategy.md)）。Domain は EF Core を参照しないこと（CON-007 と一貫）。Issue [#5](https://github.com/runceel/ai-dev-dotnetapp/issues/5)。
 
 ---
 
