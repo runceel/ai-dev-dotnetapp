@@ -305,7 +305,7 @@ sequenceDiagram
 
 ## 8. テスト戦略
 
-本フェーズでは自動テストプロジェクトは追加しない（SPEC §1 Out of Scope / SPEC §6）。代わりに **コマンドベースの構造的・動作的検証** で受け入れを担保する。
+本フェーズ（基盤プロジェクト構造）では自動テストプロジェクトは追加していない（SPEC §1 Out of Scope / SPEC §6）。Issue #3（UI Shell 導入）で `src/tests/EventRegistration.Web.Tests/` が追加された。代わりに **コマンドベースの構造的・動作的検証** で受け入れを担保する。
 
 ### 8.1 検証レベルと対応コマンド
 
@@ -334,7 +334,7 @@ flowchart TD
 
 ### 8.3 将来の自動テスト導入予定（参考）
 
-業務機能実装フェーズ（Phase 2 以降の各機能 Issue）で MSTest + FluentAssertions + Microsoft.Playwright の導入を予定（SPEC §6）。本フェーズではテストプロジェクトの追加自体を行わない。
+業務機能実装フェーズ（Phase 2 以降の各機能 Issue）で MSTest + FluentAssertions + Microsoft.Playwright の導入を予定（SPEC §6）。本フェーズ（基盤構造）ではテストプロジェクトの追加を行わないが、Issue #3（UI Shell）で初のテストプロジェクトが追加された。
 
 ---
 

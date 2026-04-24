@@ -83,7 +83,7 @@ ai-dev-dotnetapp/
                     └── RegistrationsNavigationExtensions.cs            # AddRegistrationsModuleNavigation()
 ```
 
-> 注: 本 PR ではテストプロジェクトは追加していない。Walking Skeleton 段階の最小スコープに合わせ、`AddEventsModuleNavigation()` / `AddRegistrationsModuleNavigation()` / `IconResolver` / `NavigationMatchExtensions` などのユニットテスト・アーキテクチャテストは次フェーズの Issue として切り出す（§7 参照）。
+> 注: 本 PR で `src/tests/EventRegistration.Web.Tests/` テストプロジェクトを追加済み。`IconResolver` / `NavigationMatchExtensions` / `NavigationItem` / 各 `AddXxxModuleNavigation()` の DI 登録テスト等、計 33 件のユニットテストが含まれる（§7 参照）。
 
 > 注: 各モジュール `Application` プロジェクトには `Microsoft.Extensions.DependencyInjection.Abstractions` 10.0.0 への PackageReference を追加し、`IServiceCollection` 拡張メソッドの実装に必要な最小依存とした。`MudBlazor` および `EventRegistration.Web` への参照は **モジュール側からは一切持たない**（CON-002 / CON-006 / AC-014）。
 
@@ -456,7 +456,7 @@ public static class NavigationMatchExtensions
 
 ## 7. テスト方針
 
-本 PR ではテストプロジェクトを追加していない（Walking Skeleton 最小スコープ）。以下のテストは次フェーズの Issue として切り出して追加する想定。
+本 PR で `src/tests/EventRegistration.Web.Tests/` にテストプロジェクトを追加済み（MSTest 4.x）。以下のテストが含まれる。
 
 ### 7.1 追加予定のユニットテスト（MSTest 4.x + FluentAssertions / `csharp-mstest` スキル準拠）
 
@@ -498,7 +498,7 @@ dotnet test EventRegistration.sln
 ## 8. 既知の制約・今後の検討事項
 
 - **Href プレースホルダー**: `Events` / `Registrations` モジュールの `Href` はいずれも `/`（ホーム）に向いており、実際の専用ページは未実装。後続 Issue で `/events` / `/registrations` ページを追加した時点で各 `AddXxxModuleNavigation()` の `Href` を差し替える。
-- **テスト未追加**: 本 PR スコープでは UI Shell の Razor / 拡張クラスのユニットテストを追加していない（§7 参照）。
+- **テスト追加済み**: `src/tests/EventRegistration.Web.Tests/` に 33 件のユニットテストを追加（`IconResolver` / `NavigationMatchExtensions` / `NavigationItem` / 各モジュール DI 拡張等）。bUnit による UI レンダリングテスト・アーキテクチャテストは次フェーズ候補。
 - **ナビゲーション並び替えの再評価**: 現状は Razor テンプレートで毎レンダー実行。項目数が増えた場合は `OnInitialized` でフィールドキャッシュ化する。
 - **ダークモード対応**: `IsDarkMode` トグル UI とパレット切り替えは本スコープ外。
 - **`Group` 必須化**: 仕様初版では `Group` を nullable として「グループ無しは直置き」としていたが、実装では非 null に統一し `Home` 項目のみ Shell 側でハードコードする方針に変更した。

@@ -4,7 +4,7 @@
 /* ドロワー内ナビメニューを縦スクロール可能にする (AC-010 対応)。
    MudDrawer は flex container なので、MudNavMenu を包むラッパーを
    flex: 1 + overflow-y: auto に設定し、項目が増えても下部までスクロールできるようにする。 */
-::deep .nav-menu-scroll {
+.nav-menu-scroll {
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
