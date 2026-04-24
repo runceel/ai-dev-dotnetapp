@@ -1,7 +1,7 @@
 # アーキテクチャ設計
 
-> 対象: イベント参加登録システム基盤（SPEC: [event-registration-system-spec.md](./event-registration-system-spec.md) / Issue: [#1](https://github.com/runceel/ai-dev-dotnetapp/issues/1)）
-> ステータス: **骨子（Phase 2 / Step 2.2.5）**。詳細は実装完了後（Phase 3 / Step 3.4.5）に追記する。
+> 対象: イベント参加登録システム基盤（SPEC: [event-registration-system-spec.md](./event-registration-system-spec.md) / Issue: [#1](https://github.com/runceel/ai-dev-dotnetapp/issues/1) / PR: [#2](https://github.com/runceel/ai-dev-dotnetapp/pull/2)）
+> ステータス: **実装反映済み（Phase 3 / Step 3.4.5）**。`feature/1-bootstrap-solution` ブランチでビルド成功済み（エラー 0 / 警告 0）。
 
 ---
 
@@ -34,25 +34,49 @@
 
 ```
 ai-dev-dotnetapp/
-├── EventRegistration.sln
+├── EventRegistration.sln                         # クラシック .sln 形式
+├── global.json                                   # SDK ピン留め: 10.0.203 (rollForward: latestPatch)
+├── README.md
+├── docs/
+│   ├── architecture.md                           # 本ドキュメント
+│   └── event-registration-system-spec.md
 └── src/
-    ├── EventRegistration.AppHost/              # Aspire AppHost（オーケストレーション）
-    ├── EventRegistration.ServiceDefaults/      # 観測性・ヘルスチェック等の共通設定
-    ├── EventRegistration.Web/                  # Blazor Web App + Composition Root
+    ├── EventRegistration.AppHost/                # Aspire AppHost（Aspire.AppHost.Sdk/13.1.0）
+    │   ├── AppHost.cs                            # トップレベル文 / Web を AddProject 登録
+    │   ├── EventRegistration.AppHost.csproj
+    │   ├── Properties/launchSettings.json
+    │   ├── appsettings.json
+    │   └── appsettings.Development.json
+    ├── EventRegistration.ServiceDefaults/        # 観測性・ヘルスチェック等の共通設定（テンプレ既定 / 改変なし）
+    │   ├── Extensions.cs                         # AddServiceDefaults / MapDefaultEndpoints
+    │   └── EventRegistration.ServiceDefaults.csproj
+    ├── EventRegistration.Web/                    # Blazor Web App (Server / Empty) + Composition Root
+    │   ├── Program.cs                            # AddServiceDefaults / MapDefaultEndpoints の 2 行追加
+    │   ├── EventRegistration.Web.csproj
+    │   ├── Components/
+    │   │   ├── App.razor / Routes.razor / _Imports.razor
+    │   │   ├── Layout/MainLayout.razor (.css) / ReconnectModal.razor (.css/.js)
+    │   │   └── Pages/Home.razor / Error.razor / NotFound.razor
+    │   ├── wwwroot/app.css
+    │   ├── Properties/launchSettings.json
+    │   ├── appsettings.json
+    │   └── appsettings.Development.json
     └── Modules/
         ├── SharedKernel/
-        │   ├── EventRegistration.SharedKernel.Domain/
-        │   ├── EventRegistration.SharedKernel.Application/
-        │   └── EventRegistration.SharedKernel.Infrastructure/
+        │   ├── EventRegistration.SharedKernel.Domain/           (.gitkeep)
+        │   ├── EventRegistration.SharedKernel.Application/      (.gitkeep)
+        │   └── EventRegistration.SharedKernel.Infrastructure/   (.gitkeep)
         ├── Events/
-        │   ├── EventRegistration.Events.Domain/
-        │   ├── EventRegistration.Events.Application/
-        │   └── EventRegistration.Events.Infrastructure/
+        │   ├── EventRegistration.Events.Domain/                 (.gitkeep)
+        │   ├── EventRegistration.Events.Application/            (.gitkeep)
+        │   └── EventRegistration.Events.Infrastructure/         (.gitkeep)
         └── Registrations/
-            ├── EventRegistration.Registrations.Domain/
-            ├── EventRegistration.Registrations.Application/
-            └── EventRegistration.Registrations.Infrastructure/
+            ├── EventRegistration.Registrations.Domain/          (.gitkeep)
+            ├── EventRegistration.Registrations.Application/     (.gitkeep)
+            └── EventRegistration.Registrations.Infrastructure/  (.gitkeep)
 ```
+
+> 注: Web プロジェクトの `Components/` 配下の Razor ファイル（`App.razor` / `Routes.razor` / `Layout/*` / `Pages/{Home,Error,NotFound}.razor` / `wwwroot/app.css`）はすべて `dotnet new blazor --interactivity Server --empty` テンプレートが生成した既定ファイルで、**Counter / Weather などのサンプル UI は含まれない**（AC-011 充足）。テンプレート出力は改変していない。
 
 ソリューションフォルダ階層（`.sln` 内、IDE 表示用）:
 
@@ -373,11 +397,133 @@ SPEC §5 の AC-001〜AC-015 と本ドキュメントの設計セクションの
 
 ---
 
-## 12. TODO（Phase 3 / Step 3.4.5 で追記予定）
+## 12. 実装結果（Phase 3 / Step 3.4.5 反映）
 
-- [ ] 実装後の `csproj` のリンク（各プロジェクトへの相対リンク）
-- [ ] 実際の `dotnet build` 警告サマリ（CON-006 対応の記録）
-- [ ] `EventRegistration.AppHost/Program.cs` の最終コード抜粋
-- [ ] `EventRegistration.Web/Program.cs` の `AddServiceDefaults()` / `MapDefaultEndpoints()` 統合行の最終形
-- [ ] 起動時に観測されたダッシュボード URL の例 / Resources ページのスクリーンショット相当の説明
-- [ ] 検証コマンドのコピー&ペースト用ブロック（`dotnet build` / `dotnet run` / 禁止参照確認スクリプト）
+本セクションは実装完了後に Documentation エージェントが追記する。骨子段階の TODO はすべて以下に反映済み。
+
+### 12.1 主要ファイルへのリンク
+
+| 種別 | パス |
+|---|---|
+| ソリューション | [EventRegistration.sln](../EventRegistration.sln) |
+| SDK ピン留め | [global.json](../global.json) |
+| AppHost エントリ | [src/EventRegistration.AppHost/AppHost.cs](../src/EventRegistration.AppHost/AppHost.cs) |
+| AppHost csproj | [src/EventRegistration.AppHost/EventRegistration.AppHost.csproj](../src/EventRegistration.AppHost/EventRegistration.AppHost.csproj) |
+| Web エントリ | [src/EventRegistration.Web/Program.cs](../src/EventRegistration.Web/Program.cs) |
+| Web csproj | [src/EventRegistration.Web/EventRegistration.Web.csproj](../src/EventRegistration.Web/EventRegistration.Web.csproj) |
+| ServiceDefaults | [src/EventRegistration.ServiceDefaults/Extensions.cs](../src/EventRegistration.ServiceDefaults/Extensions.cs) |
+| Events.Domain csproj（必須参照例） | [src/Modules/Events/EventRegistration.Events.Domain/EventRegistration.Events.Domain.csproj](../src/Modules/Events/EventRegistration.Events.Domain/EventRegistration.Events.Domain.csproj) |
+
+### 12.2 ビルド結果（CON-006 / AC-001）
+
+```
+$ dotnet build EventRegistration.sln
+ビルドに成功しました。
+    0 個の警告
+    0 エラー
+経過時間 00:00:15.76
+```
+
+**エラー 0 / 警告 0**。テンプレート由来の警告も発生しなかったため、CON-006 で要求される警告コード列挙は不要。
+
+### 12.3 AppHost エントリの最終形（AC-009）
+
+`src/EventRegistration.AppHost/AppHost.cs`:
+
+```csharp
+var builder = DistributedApplication.CreateBuilder(args);
+
+builder.AddProject<Projects.EventRegistration_Web>("web");
+
+builder.Build().Run();
+```
+
+- ファイル名は `Program.cs` ではなく `AppHost.cs`（Aspire 13 SDK のテンプレート既定）
+- `Aspire.AppHost.Sdk/13.1.0` を使用しており、Web プロジェクトを Aspire リソースとして認識するための `IsAspireProjectResource` メタデータは **SDK が自動推論**するため `.csproj` への明示記述は不要だった（Architect §2.4 の R-6 は SDK 進化により解消）
+- モジュール系プロジェクトの登録は **0 件**（CON-009 充足）
+
+### 12.4 Web エントリの最終形（AC-008）
+
+`src/EventRegistration.Web/Program.cs`（テンプレート出力 + 設計どおりの 2 行追加）:
+
+```csharp
+using EventRegistration.Web.Components;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.AddServiceDefaults();                     // ← REQ-005 追加 1 行目
+
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+var app = builder.Build();
+
+app.MapDefaultEndpoints();                        // ← REQ-005 追加 2 行目
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseHsts();
+}
+app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+app.UseHttpsRedirection();
+app.UseAntiforgery();
+app.MapStaticAssets();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
+
+app.Run();
+```
+
+`Web.csproj` には `<BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>` がテンプレート既定で付与される（追加 NuGet なし / CON-005 維持）。
+
+### 12.5 検証コマンド集（コピー&ペースト用）
+
+リポジトリルートで実行:
+
+```powershell
+# 1. ビルド検証（AC-001）
+dotnet build EventRegistration.sln
+
+# 2. プロジェクト数確認（AC-006: 12 件）
+dotnet sln EventRegistration.sln list
+
+# 3. 必須参照確認（AC-015）
+dotnet list src/Modules/Events/EventRegistration.Events.Domain/EventRegistration.Events.Domain.csproj reference
+dotnet list src/Modules/Registrations/EventRegistration.Registrations.Domain/EventRegistration.Registrations.Domain.csproj reference
+
+# 4. SharedKernel.Domain が参照ゼロであること（CON-007 / AC-007）
+dotnet list src/Modules/SharedKernel/EventRegistration.SharedKernel.Domain/EventRegistration.SharedKernel.Domain.csproj reference
+
+# 5. 業務モジュール間の直接参照が 0 件であること（CON-008 / AC-013）
+Get-ChildItem -Recurse -Path src/Modules/Events -Filter *.csproj |
+  Select-String -Pattern 'Registrations'        # 期待: マッチなし
+Get-ChildItem -Recurse -Path src/Modules/Registrations -Filter *.csproj |
+  Select-String -Pattern 'Events'                # 期待: マッチなし
+
+# 6. AppHost 起動 → ダッシュボード URL 確認（AC-002〜004）
+dotnet run --project src/EventRegistration.AppHost
+#   標準出力に表示される "Now listening on: https://localhost:<port>" の URL を取得し
+#   別シェルから:
+curl -k https://localhost:<dashboard-port>/      # ダッシュボード Resources ページ → 200
+curl -k https://localhost:<web-port>/            # Web Home ページ → 200
+```
+
+### 12.6 起動時の挙動（AC-002〜004）
+
+`dotnet run --project src/EventRegistration.AppHost` 実行時:
+
+1. 標準出力に `Now listening on: https://localhost:<dashboard-port>` 形式で **Aspire ダッシュボード URL** が出力される
+2. 同時に Web リソースのエンドポイント URL もログ表示される
+3. ダッシュボード Resources ページにアクセスすると `web` リソース（`EventRegistration.Web`）が `Running` 状態で表示される
+4. Web エンドポイントにアクセスすると Empty テンプレート既定の Home ページ（"Hello, world!" 相当）が HTTP 200 で取得できる
+
+> 開発用 HTTPS 証明書が未信頼の場合は `curl -k` または事前に `dotnet dev-certs https --trust` を実行（§9.1 R-4）。
+
+### 12.7 環境セットアップ上の注意（実装で判明）
+
+| 項目 | 内容 |
+|---|---|
+| .NET 10 SDK ピン留め | プロジェクト全体で `net10.0` を確実に使うため、`global.json` で `10.0.203` (`rollForward: latestPatch`) にピン留め。CON-001 の確実遵守目的 |
+| `.sln` 形式 | .NET 10 の `dotnet new sln` 既定が `.slnx` に変更されているため、`dotnet new sln --format sln` を明示してクラシック `.sln` を生成（Architect §2.1 / .sln 形式維持）|
+| Aspire SDK | `Aspire.AppHost.Sdk/13.1.0` を使用。`IsAspireProjectResource` 属性は SDK が自動推論するため、AppHost csproj への明示は不要 |
