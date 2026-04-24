@@ -1,0 +1,142 @@
+@inject IDialogService DialogService
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_registrations is null || _registrations.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">まだ参加者がいません。</MudAlert>
+}
+else
+{
+    if (Confirmed.Count > 0)
+    {
+        <MudText Typo="Typo.h6" Class="mb-2">参加確定（@Confirmed.Count 名）</MudText>
+        <MudTable Items="Confirmed" Dense="true" Hover="true" Class="mb-4">
+            <HeaderContent>
+                <MudTh>参加者名</MudTh>
+                <MudTh>メールアドレス</MudTh>
+                <MudTh>登録日時</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.ParticipantName</MudTd>
+                <MudTd>@context.Email</MudTd>
+                <MudTd>@context.RegisteredAt.LocalDateTime.ToString("yyyy/MM/dd HH:mm")</MudTd>
+                <MudTd>
+                    <MudButton Size="Size.Small"
+                               Variant="Variant.Text"
+                               Color="Color.Error"
+                               OnClick="() => HandleCancel(context)">
+                        キャンセル
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+
+    if (WaitListed.Count > 0)
+    {
+        <MudText Typo="Typo.h6" Class="mb-2">キャンセル待ち（@WaitListed.Count 名）</MudText>
+        <MudTable Items="WaitListed" Dense="true" Hover="true">
+            <HeaderContent>
+                <MudTh>参加者名</MudTh>
+                <MudTh>メールアドレス</MudTh>
+                <MudTh>登録日時</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.ParticipantName</MudTd>
+                <MudTd>@context.Email</MudTd>
+                <MudTd>@context.RegisteredAt.LocalDateTime.ToString("yyyy/MM/dd HH:mm")</MudTd>
+                <MudTd>
+                    <MudButton Size="Size.Small"
+                               Variant="Variant.Text"
+                               Color="Color.Error"
+                               OnClick="() => HandleCancel(context)">
+                        キャンセル
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+}
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <MudAlert Severity="@_severity" Class="mt-2">@_message</MudAlert>
+}
+
+@code {
+    [Parameter] public Guid EventId { get; set; }
+    [Parameter] public EventCallback OnCancelled { get; set; }
+
+    [Inject] private GetRegistrationsByEventUseCase GetRegistrationsUseCase { get; set; } = default!;
+    [Inject] private CancelRegistrationUseCase CancelUseCase { get; set; } = default!;
+
+    private IReadOnlyList<Registration>? _registrations;
+    private bool _loading = true;
+    private string? _message;
+    private Severity _severity;
+
+    private List<Registration> Confirmed =>
+        _registrations?.Where(r => r.Status == RegistrationStatus.Confirmed).ToList() ?? [];
+
+    private List<Registration> WaitListed =>
+        _registrations?.Where(r => r.Status == RegistrationStatus.WaitListed).ToList() ?? [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+        _loading = false;
+    }
+
+    public async Task RefreshAsync()
+    {
+        await LoadAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadAsync()
+    {
+        _registrations = await GetRegistrationsUseCase.ExecuteAsync(EventId);
+    }
+
+    private async Task HandleCancel(Registration registration)
+    {
+        var result = await DialogService.ShowMessageBoxAsync(
+            "キャンセル確認",
+            $"{registration.ParticipantName} さんの参加登録をキャンセルしますか？",
+            yesText: "キャンセルする",
+            cancelText: "戻る");
+
+        if (result != true) return;
+
+        try
+        {
+            var cancelResult = await CancelUseCase.ExecuteAsync(registration.Id);
+            if (cancelResult.IsSuccess)
+            {
+                _message = "キャンセルしました。";
+                _severity = Severity.Info;
+                if (cancelResult.PromotedRegistration is not null)
+                {
+                    _message += $" {cancelResult.PromotedRegistration.ParticipantName} さんが参加確定に繰り上がりました。";
+                }
+                await LoadAsync();
+                await OnCancelled.InvokeAsync();
+            }
+            else
+            {
+                _message = cancelResult.ErrorMessage;
+                _severity = Severity.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+            _severity = Severity.Error;
+        }
+    }
+}

@@ -1,5 +1,4 @@
-@page "/events/{Id:guid}"
-@inject EventRegistration.Events.Application.UseCases.GetEventByIdUseCase GetEventById
+@page "/events/{EventId:guid}"
 
 <PageTitle>イベント詳細</PageTitle>
 
@@ -9,67 +8,84 @@
 }
 else if (_event is null)
 {
-    <MudAlert Severity="Severity.Warning" Class="mb-4">
-        指定されたイベントが見つかりませんでした。
-    </MudAlert>
-    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/events">
-        イベント一覧に戻る
-    </MudButton>
+    <MudAlert Severity="Severity.Warning">イベントが見つかりません。</MudAlert>
+    <MudButton Variant="Variant.Text" Href="/events" Class="mt-4">一覧に戻る</MudButton>
 }
 else
 {
+    <MudButton Variant="Variant.Text" Href="/events" StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-4">
+        一覧に戻る
+    </MudButton>
+
     <MudText Typo="Typo.h4" Class="mb-4">@_event.Name</MudText>
 
-    <MudPaper Class="pa-4 mb-4" MaxWidth="800px">
+    <MudPaper Class="pa-4 mb-4">
         <MudGrid>
             <MudItem xs="12" sm="6">
-                <MudText Typo="Typo.subtitle2" Color="Color.Default" Class="mud-text-secondary">開催日時</MudText>
-                <MudText Typo="Typo.body1">@_event.ScheduledAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</MudText>
+                <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">開催日時</MudText>
+                <MudText>@_event.ScheduledAt.LocalDateTime.ToString("yyyy/MM/dd HH:mm")</MudText>
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudText Typo="Typo.subtitle2" Color="Color.Default" Class="mud-text-secondary">定員</MudText>
-                <MudText Typo="Typo.body1">@_event.Capacity 名</MudText>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudText Typo="Typo.subtitle2" Color="Color.Default" Class="mud-text-secondary">残り枠数</MudText>
-                <MudText Typo="Typo.body1">@RemainingCapacity 名</MudText>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudText Typo="Typo.subtitle2" Color="Color.Default" Class="mud-text-secondary">作成日時</MudText>
-                <MudText Typo="Typo.body1">@_event.CreatedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</MudText>
+                <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">定員</MudText>
+                <MudText>@_event.Capacity 名（残り @_remainingSlots 枠）</MudText>
             </MudItem>
             @if (!string.IsNullOrWhiteSpace(_event.Description))
             {
                 <MudItem xs="12">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Default" Class="mud-text-secondary">説明</MudText>
-                    <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@_event.Description</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">説明</MudText>
+                    <MudText>@_event.Description</MudText>
                 </MudItem>
             }
         </MudGrid>
     </MudPaper>
 
-    <MudButton Variant="Variant.Text"
-               Color="Color.Primary"
-               StartIcon="@Icons.Material.Filled.ArrowBack"
-               Href="/events">
-        イベント一覧に戻る
-    </MudButton>
+    <MudGrid>
+        <MudItem xs="12" md="5">
+            <MudText Typo="Typo.h5" Class="mb-2">参加登録</MudText>
+            <RegistrationForm EventId="EventId" OnRegistered="HandleRegistered" />
+        </MudItem>
+        <MudItem xs="12" md="7">
+            <MudText Typo="Typo.h5" Class="mb-2">参加者一覧</MudText>
+            <ParticipantList EventId="EventId" @ref="_participantList" />
+        </MudItem>
+    </MudGrid>
 }
 
 @code {
-    [Parameter]
-    public Guid Id { get; set; }
+    [Parameter] public Guid EventId { get; set; }
 
-    private EventRegistration.Events.Domain.Event? _event;
+    [Inject] private GetEventByIdUseCase GetEventByIdUseCase { get; set; } = default!;
+    [Inject] private GetRegistrationsByEventUseCase GetRegistrationsUseCase { get; set; } = default!;
+
+    private Event? _event;
     private bool _loading = true;
-
-    // Registrations モジュール実装後に確定参加者数を反映する
-    private int ConfirmedRegistrations => 0;
-    private int RemainingCapacity => _event is not null ? _event.Capacity - ConfirmedRegistrations : 0;
+    private int _remainingSlots;
+    private ParticipantList? _participantList;
 
     protected override async Task OnInitializedAsync()
     {
-        _event = await GetEventById.ExecuteAsync(Id);
+        await LoadDataAsync();
         _loading = false;
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _event = await GetEventByIdUseCase.ExecuteAsync(EventId);
+        if (_event is not null)
+        {
+            var registrations = await GetRegistrationsUseCase.ExecuteAsync(EventId);
+            var confirmedCount = registrations.Count(r => r.Status == RegistrationStatus.Confirmed);
+            _remainingSlots = Math.Max(0, _event.Capacity - confirmedCount);
+        }
+    }
+
+    private async Task HandleRegistered()
+    {
+        await LoadDataAsync();
+        if (_participantList is not null)
+        {
+            await _participantList.RefreshAsync();
+        }
+        StateHasChanged();
     }
 }

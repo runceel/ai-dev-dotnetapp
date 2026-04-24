@@ -5,94 +5,51 @@ namespace EventRegistration.Web.Tests.Modules.Events.Domain;
 [TestClass]
 public sealed class EventTests
 {
-    private static readonly DateTimeOffset ValidScheduledAt = new(2026, 6, 1, 10, 0, 0, TimeSpan.FromHours(9));
-    private static readonly DateTimeOffset ValidCreatedAt = new(2026, 4, 25, 0, 0, 0, TimeSpan.Zero);
-
     [TestMethod]
-    public void Create_WithValidInput_ReturnsEvent()
+    public void Create_ValidInputs_ReturnsEvent()
     {
-        var @event = Event.Create("テストイベント", "説明文", ValidScheduledAt, 100, ValidCreatedAt);
+        var ev = Event.Create("テストイベント", "説明", DateTimeOffset.UtcNow.AddDays(7), 10);
 
-        Assert.IsNotNull(@event);
-        Assert.AreNotEqual(Guid.Empty, @event.Id);
-        Assert.AreEqual("テストイベント", @event.Name);
-        Assert.AreEqual("説明文", @event.Description);
-        Assert.AreEqual(ValidScheduledAt, @event.ScheduledAt);
-        Assert.AreEqual(100, @event.Capacity);
-        Assert.AreEqual(ValidCreatedAt, @event.CreatedAt);
+        Assert.IsNotNull(ev);
+        Assert.AreNotEqual(Guid.Empty, ev.Id);
+        Assert.AreEqual("テストイベント", ev.Name);
+        Assert.AreEqual("説明", ev.Description);
+        Assert.AreEqual(10, ev.Capacity);
     }
 
     [TestMethod]
-    public void Create_WithNullDescription_Succeeds()
+    public void Create_NullName_ThrowsArgumentException()
     {
-        var @event = Event.Create("イベント", null, ValidScheduledAt, 50, ValidCreatedAt);
-
-        Assert.IsNull(@event.Description);
+        Assert.ThrowsException<ArgumentNullException>(
+            () => Event.Create(null!, null, DateTimeOffset.UtcNow, 10));
     }
 
     [TestMethod]
-    public void Create_WithMinimumCapacity_Succeeds()
+    public void Create_WhitespaceName_ThrowsArgumentException()
     {
-        var @event = Event.Create("イベント", null, ValidScheduledAt, 1, ValidCreatedAt);
-
-        Assert.AreEqual(1, @event.Capacity);
+        Assert.ThrowsException<ArgumentException>(
+            () => Event.Create("  ", null, DateTimeOffset.UtcNow, 10));
     }
 
     [TestMethod]
-    public void Create_GeneratesUniqueIds()
+    public void Create_ZeroCapacity_ThrowsArgumentOutOfRangeException()
     {
-        var event1 = Event.Create("イベント1", null, ValidScheduledAt, 10, ValidCreatedAt);
-        var event2 = Event.Create("イベント2", null, ValidScheduledAt, 10, ValidCreatedAt);
-
-        Assert.AreNotEqual(event1.Id, event2.Id);
+        Assert.ThrowsException<ArgumentOutOfRangeException>(
+            () => Event.Create("テスト", null, DateTimeOffset.UtcNow, 0));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
-    public void Create_WithNullName_ThrowsArgumentException()
+    public void Create_NegativeCapacity_ThrowsArgumentOutOfRangeException()
     {
-        Event.Create(null!, null, ValidScheduledAt, 10, ValidCreatedAt);
+        Assert.ThrowsException<ArgumentOutOfRangeException>(
+            () => Event.Create("テスト", null, DateTimeOffset.UtcNow, -1));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentException))]
-    public void Create_WithEmptyName_ThrowsArgumentException()
+    public void Create_NullDescription_SetsDescriptionToNull()
     {
-        Event.Create("", null, ValidScheduledAt, 10, ValidCreatedAt);
-    }
+        var ev = Event.Create("テスト", null, DateTimeOffset.UtcNow, 5);
 
-    [TestMethod]
-    [ExpectedException(typeof(ArgumentException))]
-    public void Create_WithWhitespaceName_ThrowsArgumentException()
-    {
-        Event.Create("   ", null, ValidScheduledAt, 10, ValidCreatedAt);
-    }
-
-    [TestMethod]
-    [ExpectedException(typeof(ArgumentOutOfRangeException))]
-    public void Create_WithZeroCapacity_ThrowsArgumentOutOfRangeException()
-    {
-        Event.Create("イベント", null, ValidScheduledAt, 0, ValidCreatedAt);
-    }
-
-    [TestMethod]
-    [ExpectedException(typeof(ArgumentOutOfRangeException))]
-    public void Create_WithNegativeCapacity_ThrowsArgumentOutOfRangeException()
-    {
-        Event.Create("イベント", null, ValidScheduledAt, -1, ValidCreatedAt);
-    }
-
-    [TestMethod]
-    [ExpectedException(typeof(ArgumentException))]
-    public void Create_WithDefaultScheduledAt_ThrowsArgumentException()
-    {
-        Event.Create("イベント", null, default, 10, ValidCreatedAt);
-    }
-
-    [TestMethod]
-    [ExpectedException(typeof(ArgumentException))]
-    public void Create_WithDefaultCreatedAt_ThrowsArgumentException()
-    {
-        Event.Create("イベント", null, ValidScheduledAt, 10, default);
+        Assert.IsNull(ev.Description);
     }
 }

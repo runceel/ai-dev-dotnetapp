@@ -1,56 +1,49 @@
 @page "/events/create"
-@inject EventRegistration.Events.Application.UseCases.CreateEventUseCase CreateEvent
-@inject NavigationManager Navigation
-@inject ISnackbar Snackbar
 
 <PageTitle>イベント作成</PageTitle>
 
-<MudText Typo="Typo.h4" Class="mb-4">新しいイベントを作成</MudText>
+<MudText Typo="Typo.h4" Class="mb-4">新しいイベントの作成</MudText>
 
 <MudPaper Class="pa-4" MaxWidth="600px">
-    <EditForm Model="_model" OnValidSubmit="HandleValidSubmit">
+    <EditForm Model="_model" OnValidSubmit="HandleSubmit" FormName="createEvent">
         <DataAnnotationsValidator />
 
         <MudTextField @bind-Value="_model.Name"
                       Label="イベント名"
                       Required="true"
                       RequiredError="イベント名は必須です"
-                      For="@(() => _model.Name)"
-                      Class="mb-3" />
+                      Class="mb-4" />
 
         <MudDatePicker @bind-Date="_model.ScheduledDate"
                        Label="開催日"
                        Required="true"
                        RequiredError="開催日は必須です"
-                       DateFormat="yyyy/MM/dd"
-                       Class="mb-3" />
+                       Class="mb-4" />
 
         <MudTimePicker @bind-Time="_model.ScheduledTime"
                        Label="開催時間"
                        Required="true"
                        RequiredError="開催時間は必須です"
-                       Class="mb-3" />
+                       Class="mb-4" />
 
         <MudNumericField @bind-Value="_model.Capacity"
                          Label="定員"
                          Required="true"
                          RequiredError="定員は必須です"
                          Min="1"
-                         For="@(() => _model.Capacity)"
-                         Class="mb-3" />
+                         Class="mb-4" />
 
         <MudTextField @bind-Value="_model.Description"
                       Label="説明"
-                      Lines="4"
-                      For="@(() => _model.Description)"
-                      Class="mb-3" />
+                      Lines="3"
+                      Class="mb-4" />
 
-        <div class="d-flex justify-end gap-2 mt-4">
-            <MudButton Variant="Variant.Text"
-                       Color="Color.Default"
-                       Href="/events">
-                キャンセル
-            </MudButton>
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">@_errorMessage</MudAlert>
+        }
+
+        <div class="d-flex gap-2">
             <MudButton ButtonType="ButtonType.Submit"
                        Variant="Variant.Filled"
                        Color="Color.Primary"
@@ -61,40 +54,47 @@
                 }
                 保存
             </MudButton>
+            <MudButton Variant="Variant.Text" Href="/events">キャンセル</MudButton>
         </div>
     </EditForm>
 </MudPaper>
 
 @code {
-    private readonly CreateEventFormModel _model = new();
+    [Inject] private CreateEventUseCase CreateEventUseCase { get; set; } = default!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
+    private readonly EventCreateModel _model = new();
     private bool _submitting;
+    private string? _errorMessage;
 
-    private async Task HandleValidSubmit()
+    private async Task HandleSubmit()
     {
-        if (_model.ScheduledDate is null || _model.ScheduledTime is null || _model.Capacity is null)
-        {
-            return;
-        }
-
         _submitting = true;
+        _errorMessage = null;
+
         try
         {
-            var scheduledAt = new DateTimeOffset(
-                _model.ScheduledDate.Value.Date + _model.ScheduledTime.Value,
-                DateTimeOffset.Now.Offset);
+            if (_model.ScheduledDate is null || _model.ScheduledTime is null)
+            {
+                _errorMessage = "開催日時は必須です。";
+                return;
+            }
 
-            var eventId = await CreateEvent.ExecuteAsync(
-                _model.Name,
+            var scheduledAt = new DateTimeOffset(
+                _model.ScheduledDate.Value.Add(_model.ScheduledTime.Value),
+                TimeZoneInfo.Local.GetUtcOffset(DateTime.Now));
+
+            var ev = await CreateEventUseCase.ExecuteAsync(
+                _model.Name!,
                 _model.Description,
                 scheduledAt,
-                _model.Capacity.Value);
+                _model.Capacity);
 
-            Snackbar.Add("イベントを作成しました。", Severity.Success);
-            Navigation.NavigateTo($"/events/{eventId}");
+            NavigationManager.NavigateTo($"/events/{ev.Id}");
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"エラーが発生しました: {ex.Message}", Severity.Error);
+            _errorMessage = ex.Message;
         }
         finally
         {
@@ -102,21 +102,12 @@
         }
     }
 
-    private sealed class CreateEventFormModel
+    private sealed class EventCreateModel
     {
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "イベント名は必須です")]
-        public string Name { get; set; } = string.Empty;
-
+        public string? Name { get; set; }
         public string? Description { get; set; }
-
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "開催日は必須です")]
-        public DateTime? ScheduledDate { get; set; }
-
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "開催時間は必須です")]
-        public TimeSpan? ScheduledTime { get; set; }
-
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "定員は必須です")]
-        [System.ComponentModel.DataAnnotations.Range(1, int.MaxValue, ErrorMessage = "定員は1以上で指定してください")]
-        public int? Capacity { get; set; }
+        public DateTime? ScheduledDate { get; set; } = DateTime.Today.AddDays(7);
+        public TimeSpan? ScheduledTime { get; set; } = new(18, 0, 0);
+        public int Capacity { get; set; } = 10;
     }
 }

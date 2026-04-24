@@ -1,19 +1,14 @@
 using EventRegistration.Events.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace EventRegistration.Events.Infrastructure;
+namespace EventRegistration.Events.Infrastructure.Persistence;
 
 /// <summary>
-/// Events モジュール専用の DbContext。
-/// InMemory DB 名 "Events" を使用する。
+/// Events モジュールの DbContext。
 /// </summary>
-public sealed class EventsDbContext : DbContext
+public sealed class EventsDbContext(DbContextOptions<EventsDbContext> options) : DbContext(options)
 {
     public DbSet<Event> Events => Set<Event>();
-
-    public EventsDbContext(DbContextOptions<EventsDbContext> options) : base(options)
-    {
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

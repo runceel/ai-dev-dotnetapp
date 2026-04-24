@@ -1,14 +1,13 @@
 using EventRegistration.Events.Application.Repositories;
 using EventRegistration.Events.Application.UseCases;
-using EventRegistration.Events.Infrastructure.Repositories;
+using EventRegistration.Events.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace EventRegistration.Events.Infrastructure;
 
 /// <summary>
-/// Events モジュールの Infrastructure サービスを DI コンテナに登録する拡張メソッド。
+/// Events モジュールの Infrastructure サービスを DI コンテナへ登録する拡張メソッド。
 /// </summary>
 public static class EventsModuleInfrastructureExtensions
 {
@@ -18,17 +17,12 @@ public static class EventsModuleInfrastructureExtensions
     public static IServiceCollection AddEventsModuleInfrastructure(this IServiceCollection services)
     {
         services.AddDbContext<EventsDbContext>(options =>
-            options.UseInMemoryDatabase("Events"));
+            options.UseInMemoryDatabase(databaseName: "Events"));
 
         services.AddScoped<IEventRepository, EventRepository>();
-
-        // ユースケース
         services.AddScoped<CreateEventUseCase>();
-        services.AddScoped<GetEventsUseCase>();
         services.AddScoped<GetEventByIdUseCase>();
-
-        // TimeProvider（未登録の場合のみ追加）
-        services.TryAddSingleton(TimeProvider.System);
+        services.AddScoped<GetAllEventsUseCase>();
 
         return services;
     }

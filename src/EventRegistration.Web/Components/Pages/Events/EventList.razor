@@ -1,52 +1,49 @@
 @page "/events"
-@inject EventRegistration.Events.Application.UseCases.GetEventsUseCase GetEvents
-@inject NavigationManager Navigation
 
 <PageTitle>イベント一覧</PageTitle>
 
 <MudText Typo="Typo.h4" Class="mb-4">イベント一覧</MudText>
 
-<MudButton Variant="Variant.Filled"
-           Color="Color.Primary"
-           StartIcon="@Icons.Material.Filled.Add"
-           Href="/events/create"
-           Class="mb-4">
+<MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/events/create" Class="mb-4">
     新しいイベントを作成
 </MudButton>
 
-@if (_events is null)
+@if (_loading)
 {
     <MudProgressCircular Indeterminate="true" />
 }
-else if (_events.Count == 0)
+else if (_events is null || _events.Count == 0)
 {
     <MudAlert Severity="Severity.Info">イベントがまだ登録されていません。</MudAlert>
 }
 else
 {
     <MudGrid>
-        @foreach (var evt in _events)
+        @foreach (var ev in _events)
         {
             <MudItem xs="12" sm="6" md="4">
-                <MudCard Style="cursor: pointer;" @onclick="() => NavigateToDetail(evt.Id)">
+                <MudCard Class="cursor-pointer" @onclick="() => NavigateToDetail(ev.Id)">
                     <MudCardHeader>
                         <CardHeaderContent>
-                            <MudText Typo="Typo.h6">@evt.Name</MudText>
+                            <MudText Typo="Typo.h6">@ev.Name</MudText>
                         </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIcon Icon="@Icons.Material.Filled.Event" />
+                        </CardHeaderActions>
                     </MudCardHeader>
                     <MudCardContent>
-                        <MudText Typo="Typo.body2" Color="Color.Default">
+                        <MudText Typo="Typo.body2" Class="mb-2">
                             <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" Class="mr-1" />
-                            @evt.ScheduledAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")
+                            @ev.ScheduledAt.LocalDateTime.ToString("yyyy/MM/dd HH:mm")
                         </MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Default" Class="mt-1">
+                        <MudText Typo="Typo.body2" Class="mb-2">
                             <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Class="mr-1" />
-                            定員: @evt.Capacity 名
+                            定員: @ev.Capacity 名
                         </MudText>
-                        @if (!string.IsNullOrWhiteSpace(evt.Description))
+                        @if (!string.IsNullOrWhiteSpace(ev.Description))
                         {
-                            <MudText Typo="Typo.body2" Class="mt-2 mud-text-secondary">
-                                @TruncateDescription(evt.Description)
+                            <MudText Typo="Typo.body2" Class="mud-text-secondary">
+                                @(ev.Description.Length > 100 ? ev.Description[..100] + "..." : ev.Description)
                             </MudText>
                         }
                     </MudCardContent>
@@ -57,22 +54,20 @@ else
 }
 
 @code {
-    private IReadOnlyList<EventRegistration.Events.Domain.Event>? _events;
+    [Inject] private GetAllEventsUseCase GetAllEventsUseCase { get; set; } = default!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
+    private IReadOnlyList<Event>? _events;
+    private bool _loading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        _events = await GetEvents.ExecuteAsync();
+        _events = await GetAllEventsUseCase.ExecuteAsync();
+        _loading = false;
     }
 
     private void NavigateToDetail(Guid id)
     {
-        Navigation.NavigateTo($"/events/{id}");
-    }
-
-    private static string TruncateDescription(string description, int maxLength = 100)
-    {
-        return description.Length <= maxLength
-            ? description
-            : string.Concat(description.AsSpan(0, maxLength), "…");
+        NavigationManager.NavigateTo($"/events/{id}");
     }
 }
