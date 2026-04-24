@@ -1,26 +1,26 @@
 # UI Shell 設計（MudBlazor 基盤 + ナビゲーション Self-Registration）
 
-> 対象: イベント参加登録システム UI Shell 基盤（SPEC: [event-registration-system-spec.md](./event-registration-system-spec.md) / Issue: [#3](https://github.com/runceel/ai-dev-dotnetapp/issues/3) / PR: TBD）
-> ステータス: **骨子作成（Phase 2 / Step 2.2.5）**。詳細は Phase 3 実装完了後（Step 3.4.5）に追記する。
+> 対象: イベント参加登録システム UI Shell 基盤（SPEC: [event-registration-system-spec.md](./event-registration-system-spec.md) / Issue: [#3](https://github.com/runceel/ai-dev-dotnetapp/issues/3) / PR: [#4](https://github.com/runceel/ai-dev-dotnetapp/pull/4)）
+> ステータス: **実装反映済み（Phase 3 / Step 3.4.5）**
 > 関連: [architecture.md](./architecture.md)（Walking Skeleton 全体構造）
 
 ---
 
 ## 概要
 
-本ドキュメントは、`EventRegistration.Web` に **MudBlazor を導入し、AppBar + 折りたたみ Drawer + メインコンテンツ領域からなる UI Shell** を構築する設計を定義する。あわせて、各業務モジュール（`Events` / `Registrations` …）が **自身のナビゲーション項目を DI 経由で自己登録**する `INavigationItem` 抽象（Self-Registration パターン / PAT-001）を導入し、Shell 側はモジュールの追加・削除に対してコード変更不要で項目を表示できるようにする。
+本ドキュメントは、`EventRegistration.Web` に **MudBlazor を導入し、AppBar + 折りたたみ Drawer + メインコンテンツ領域からなる UI Shell** を構築した設計を定義する。あわせて、各業務モジュール（`Events` / `Registrations`）が **自身のナビゲーション項目を DI 経由で自己登録**する `INavigationItem` 抽象（Self-Registration パターン / PAT-001）を導入し、Shell 側はモジュールの追加・削除に対してコード変更不要で項目を表示できるようにした。
 
 ### 主要なポイント
 
 | 項目 | 内容 |
 |------|------|
-| UI フレームワーク | MudBlazor（バージョンは実装時に確定 / TODO: Phase 3 で記載） |
-| Shell 構成 | `MudThemeProvider` + Provider 群 → `MudLayout`（`MudAppBar` / `MudDrawer` / `MudMainContent`） |
+| UI フレームワーク | **MudBlazor 9.4.0**（`net10.0` 互換） |
+| Shell 構成 | `MudThemeProvider` + Provider 群（`Popover` / `Dialog` / `Snackbar`）→ `MudLayout`（`MudAppBar` / `MudDrawer` / `MudMainContent`） |
 | ナビゲーション抽象 | `INavigationItem`（`SharedKernel.Application/Navigation`） |
 | ナビゲーション登録方式 | Self-Registration（モジュール側 `AddXxxModuleNavigation()` で `INavigationItem` を Singleton 登録） |
 | Shell 側解決方法 | `@inject IEnumerable<INavigationItem>` をレイアウトコンポーネントに注入 |
 | テーマ | `EventRegistration.Web/Shell/Theme/AppTheme.cs`（`MudTheme Light`、Primary `#512BD4`） |
-| アイコン解決 | `EventRegistration.Web/Shell/Navigation/IconResolver.cs`（文字列キー → `MudBlazor.Icons.Material.Filled.*` SVG） |
+| アイコン解決 | `EventRegistration.Web/Shell/Navigation/IconResolver.cs`（短い文字列キー → `MudBlazor.Icons.Material.Filled.*` SVG） |
 | Match 変換 | `NavigationMatchExtensions.ToNavLinkMatch()`（`NavigationMatch` → `NavLinkMatch`） |
 | 依存方向 | `Web → Modules.Application → SharedKernel.Application` のみ（CON-006 厳守） |
 | Composition Root | `EventRegistration.Web/Program.cs`（`AddMudServices()` と各 `AddXxxModuleNavigation()` 呼び出し） |
@@ -28,18 +28,13 @@
 ### 関連ドキュメント / コメント
 
 - 仕様: [event-registration-system-spec.md](./event-registration-system-spec.md)
-- 設計方針コメント（Architect / Step 2.1）: Issue #3（本 PR 関連コメント）
-- 実装計画コメント（Developer / Step 2.2）: Issue #3（本 PR 関連コメント）
-- レビューコメント（Reviewer / Step 1.2）: Issue #3
 - 全体アーキテクチャ: [architecture.md](./architecture.md)
-
-> 本セクションのコメント ID は Phase 3 で正式 URL（`#issuecomment-XXXX`）に置換する。
+- Issue: [#3](https://github.com/runceel/ai-dev-dotnetapp/issues/3)
+- PR: [#4](https://github.com/runceel/ai-dev-dotnetapp/pull/4)
 
 ---
 
-## 1. ディレクトリ構成（変更後の予定構成）
-
-> 本節は **Phase 2 時点の予定構成**。`<!-- TODO: Phase 3 で実態と差分を確認し更新 -->`。
+## 1. ディレクトリ構成（実装反映後）
 
 ```
 ai-dev-dotnetapp/
@@ -49,67 +44,88 @@ ai-dev-dotnetapp/
 │   └── ui-shell-design.md                          # 本ドキュメント
 └── src/
     ├── EventRegistration.Web/
-    │   ├── Program.cs                              # AddMudServices() / AddXxxModuleNavigation() を追加
-    │   ├── EventRegistration.Web.csproj            # MudBlazor PackageReference 追加 / SharedKernel.Application への ProjectReference 追加
+    │   ├── Program.cs                              # AddMudServices() / AddEventsModuleNavigation() / AddRegistrationsModuleNavigation()
+    │   ├── EventRegistration.Web.csproj            # MudBlazor 9.4.0 PackageReference 追加
     │   ├── Components/
     │   │   ├── App.razor                           # MudBlazor CSS/JS / Roboto フォント参照を追加
-    │   │   └── Layout/
-    │   │       └── MainLayout.razor                # MudLayout 構造へ刷新（既存 blazor-error-ui は MainContent 外に維持）
-    │   └── Shell/                                  # （新規）UI Shell 専用領域
-    │       ├── Theme/
-    │       │   └── AppTheme.cs                     # MudTheme Light（Primary=#512BD4 ほか）
-    │       └── Navigation/
-    │           ├── IconResolver.cs                 # 文字列キー → MudBlazor SVG 解決（internal static）
-    │           └── NavigationMatchExtensions.cs    # NavigationMatch → NavLinkMatch 変換（internal static）
-    ├── Modules/
+    │   │   ├── _Imports.razor                      # MudBlazor / Shell.* / SharedKernel.Application.Navigation の using
+    │   │   ├── Layout/
+    │   │   │   ├── MainLayout.razor                # MudLayout 構造へ刷新（既存 blazor-error-ui は MudLayout 外に維持）
+    │   │   │   └── MainLayout.razor.css            # MudBlazor がレイアウトを担うため Blazor 標準エラー UI 用スタイルのみ
+    │   │   └── Pages/
+    │   │       ├── Home.razor                      # MudText ベースに刷新（日本語化）
+    │   │       ├── Error.razor                     # MudAlert / MudText ベースに刷新（日本語化）
+    │   │       └── NotFound.razor                  # MudAlert / MudText ベースに刷新（日本語化）
+    │   ├── Shell/                                  # （新規）UI Shell 専用領域
+    │   │   ├── Theme/
+    │   │   │   └── AppTheme.cs                     # MudTheme Light（Primary=#512BD4 ほか / Roboto Typography）
+    │   │   └── Navigation/
+    │   │       ├── IconResolver.cs                 # 文字列キー → MudBlazor SVG 解決（public static）
+    │   │       └── NavigationMatchExtensions.cs    # NavigationMatch → NavLinkMatch 変換（public static）
+    │   └── wwwroot/
+    │       └── app.css                             # MudBlazor 移行に伴い Bootstrap 由来スタイルを除去
+    └── Modules/
         ├── SharedKernel/
         │   └── EventRegistration.SharedKernel.Application/
         │       └── Navigation/                     # （新規）UI 中立ナビゲーション抽象
         │           ├── INavigationItem.cs
-        │           ├── NavigationItem.cs           # sealed record（既定値 Order=100, Match=Prefix）
-        │           └── NavigationMatch.cs          # enum { Prefix=0, All=1 }
+        │           ├── NavigationItem.cs           # sealed record
+        │           └── NavigationMatch.cs          # enum { Prefix, All }
         ├── Events/
         │   └── EventRegistration.Events.Application/
+        │       ├── EventRegistration.Events.Application.csproj   # SharedKernel.Application 参照 + DI.Abstractions 10.0.0
         │       └── Navigation/
-        │           └── EventsModuleNavigationExtensions.cs        # AddEventsModuleNavigation()
+        │           └── EventsNavigationExtensions.cs              # AddEventsModuleNavigation()
         └── Registrations/
             └── EventRegistration.Registrations.Application/
+                ├── EventRegistration.Registrations.Application.csproj  # SharedKernel.Application 参照 + DI.Abstractions 10.0.0
                 └── Navigation/
-                    └── RegistrationsModuleNavigationExtensions.cs # AddRegistrationsModuleNavigation()
-    └── tests/                                                    # （新規）テストプロジェクト集約ディレクトリ
-        ├── EventRegistration.SharedKernel.Application.Tests/     # NavigationItem / NavigationMatch のユニットテスト（§7.1）
-        │   └── EventRegistration.SharedKernel.Application.Tests.csproj
-        ├── EventRegistration.Events.Application.Tests/           # AddEventsModuleNavigation() のテスト（§7.1）
-        │   └── EventRegistration.Events.Application.Tests.csproj
-        ├── EventRegistration.Registrations.Application.Tests/    # AddRegistrationsModuleNavigation() のテスト（§7.1）
-        │   └── EventRegistration.Registrations.Application.Tests.csproj
-        └── EventRegistration.Web.Tests/                          # IconResolver / NavigationMatchExtensions / Composition Root 統合テスト（§7.1）
-            └── EventRegistration.Web.Tests.csproj
+                    └── RegistrationsNavigationExtensions.cs            # AddRegistrationsModuleNavigation()
 ```
 
-> 注: `src/tests/` 配下のテストプロジェクトはいずれも MSTest 4.x + FluentAssertions（`csharp-mstest` スキル準拠）で構成し、`EventRegistration.sln` に追加する。各テストプロジェクトの最終ファイル構成・実テスト数は Phase 3（Step 3.4.5）で実態を反映する（§8 TODO 参照）。
+> 注: 本 PR ではテストプロジェクトは追加していない。Walking Skeleton 段階の最小スコープに合わせ、`AddEventsModuleNavigation()` / `AddRegistrationsModuleNavigation()` / `IconResolver` / `NavigationMatchExtensions` などのユニットテスト・アーキテクチャテストは次フェーズの Issue として切り出す（§7 参照）。
 
-> 注: 各モジュール `Application` プロジェクトには、必要に応じて `Microsoft.Extensions.DependencyInjection.Abstractions` への PackageReference を追加する（`IServiceCollection` 拡張メソッド実装のための最小依存）。`MudBlazor` および `EventRegistration.Web` への参照は **モジュール側からは一切持たない**（CON-002 / CON-006 / AC-014）。
+> 注: 各モジュール `Application` プロジェクトには `Microsoft.Extensions.DependencyInjection.Abstractions` 10.0.0 への PackageReference を追加し、`IServiceCollection` 拡張メソッドの実装に必要な最小依存とした。`MudBlazor` および `EventRegistration.Web` への参照は **モジュール側からは一切持たない**（CON-002 / CON-006 / AC-014）。
 
 ---
 
 ## 2. MudBlazor 導入設定
 
-<!-- TODO: Phase 3 で確定したパッケージバージョン・実コードを反映 -->
-
 ### 2.1 NuGet パッケージ参照
 
-- `EventRegistration.Web.csproj` に `MudBlazor` を `PackageReference` として追加する（バージョンは実装時に NuGet 最新の `net10.0` 互換版を採用予定 / Phase 3 で確定）。
+`EventRegistration.Web.csproj` に以下を追加。
+
+```xml
+<ItemGroup>
+  <PackageReference Include="MudBlazor" Version="9.4.0" />
+</ItemGroup>
+```
+
 - 既存の `BlazorDisableThrowNavigationException` 等の `PropertyGroup` 設定は **改変せず維持**（CON-004）。
-- モジュール側プロジェクトには MudBlazor を **追加しない**。
+- モジュール側プロジェクトには MudBlazor を **追加していない**。
 
 ### 2.2 `Program.cs`（Composition Root）
 
 ```csharp
-// 追加行（既存の AddRazorComponents()/AddInteractiveServerComponents() 等の隣に配置）
+using EventRegistration.Events.Application.Navigation;
+using EventRegistration.Registrations.Application.Navigation;
+using EventRegistration.Web.Components;
+using MudBlazor.Services;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.AddServiceDefaults();
+
+// MudBlazor の各種サービスを登録
 builder.Services.AddMudServices();
+
+// 各モジュールが提供するナビゲーション項目を登録
 builder.Services.AddEventsModuleNavigation();
 builder.Services.AddRegistrationsModuleNavigation();
+
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
 ```
 
 - `AddMudServices()` は `EventRegistration.Web/Program.cs` でのみ呼ぶ（CON-001 Composition Root 単一原則）。
@@ -117,36 +133,103 @@ builder.Services.AddRegistrationsModuleNavigation();
 
 ### 2.3 `Components/App.razor`
 
-- `<head>` に MudBlazor の CSS（`_content/MudBlazor/MudBlazor.min.css`）と Google Fonts の Roboto を追加。
-- `<body>` 末尾の `<Routes />` 後に MudBlazor の JS（`_content/MudBlazor/MudBlazor.min.js`）を追加。
-- 詳細なタグ位置・属性は Phase 3 で実装後に追記する。
+`<head>` に MudBlazor CSS と Google Fonts の Roboto を追加し、`<body>` 末尾の `blazor.web.js` 直前に MudBlazor JS を追加した（差分のみ抜粋）。
+
+```razor
+<head>
+    ...
+    <ResourcePreloader />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    ...
+</head>
+<body>
+    <Routes />
+    <ReconnectModal />
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+```
+
+### 2.4 `Components/_Imports.razor`
+
+Razor 共通 `using` に MudBlazor および Shell / SharedKernel ナビゲーション名前空間を追加。
+
+```razor
+@using MudBlazor
+@using EventRegistration.SharedKernel.Application.Navigation
+@using EventRegistration.Web.Shell.Navigation
+@using EventRegistration.Web.Shell.Theme
+```
 
 ---
 
 ## 3. UI Shell 構成（`MainLayout.razor`）
 
-<!-- TODO: Phase 3 で確定した razor 全文を埋め込む -->
+### 3.1 実装
 
-### 3.1 構造
+```razor
+@inherits LayoutComponentBase
+@inject IEnumerable<INavigationItem> NavigationItems
 
-```
-MudThemeProvider (Theme=AppTheme.Light, IsDarkMode=false)
-MudPopoverProvider
-MudDialogProvider
-MudSnackbarProvider
+<MudThemeProvider Theme="AppTheme.Light" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-MudLayout
-├── MudAppBar (Color=Primary)
-│   ├── MudIconButton (Menu アイコン / OnClick=ToggleDrawer)
-│   └── MudText (Typo=h6 / "Event Registration")
-├── MudDrawer (@bind-Open=_drawerOpen / Variant=Responsive / Breakpoint=Md / ClipMode=Always)
-│   └── MudNavMenu
-│       ├── （Group=null の項目）→ MudNavLink を直置き
-│       └── （Group!=null の項目）→ Group ごとに MudNavGroup でまとめ、配下に MudNavLink
-└── MudMainContent
-    └── @Body
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" />
+        <MudText Typo="Typo.h6" Class="ml-3">イベント参加登録システム</MudText>
+        <MudSpacer />
+    </MudAppBar>
 
-<div id="blazor-error-ui" data-nosnippet> ... </div>   # 既存をそのまま外側に維持（NFR-003 / AC-012）
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2" Variant="DrawerVariant.Responsive">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.h6">メニュー</MudText>
+        </MudDrawerHeader>
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">ホーム</MudNavLink>
+            @foreach (var group in NavigationItems
+                .OrderBy(x => x.Group)
+                .ThenBy(x => x.Order)
+                .ThenBy(x => x.Title)
+                .GroupBy(x => x.Group))
+            {
+                <MudNavGroup Title="@group.Key" Expanded="true">
+                    @foreach (var item in group)
+                    {
+                        <MudNavLink Href="@item.Href"
+                                    Match="@NavigationMatchExtensions.ToNavLinkMatch(item.Match)"
+                                    Icon="@IconResolver.Resolve(item.Icon)">
+                            @item.Title
+                        </MudNavLink>
+                    }
+                </MudNavGroup>
+            }
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent Class="pt-16 px-4">
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    private bool _drawerOpen = true;
+
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}
 ```
 
 ### 3.2 動作仕様
@@ -154,12 +237,14 @@ MudLayout
 | 項目 | 仕様 | 関連 AC |
 |---|---|---|
 | 初期状態 | `_drawerOpen = true`（Md 以上では永続表示） | AC-005 |
-| トグル | AppBar のメニューアイコンで Drawer の開閉 | AC-006 |
-| レスポンシブ | `DrawerVariant.Responsive` + `Breakpoint.Md`。Md 未満では MudBlazor 標準のオーバーレイ動作 | AC-005 / AC-006 / REQ-016 |
-| アクティブ表示 | `MudNavLink Match` に `NavigationMatchExtensions.ToNavLinkMatch(item.Match)` を渡す。`Home (/)` は `All` 相当、それ以外は `Prefix`（GUD-004） | AC-010 |
-| アイコン | `IconResolver.Resolve(item.Icon)` で SVG 解決。未知キーは `Help` アイコンへフォールバック（AC-008） | AC-008 |
-| 並び順 | `OrderBy(item => item.Group ?? string.Empty).ThenBy(item => item.Order).ThenBy(item => item.Title, StringComparer.Ordinal)` を `OnInitialized` で 1 度だけ評価しキャッシュ（NFR-001） | AC-013 / AC-009 |
-| エラー UI | 既存 `blazor-error-ui` div は `MainLayout` 内・`MudLayout` 外に維持（リセット時に表示が壊れないこと） | NFR-003 / AC-012 |
+| トグル | AppBar のメニューアイコン (`Icons.Material.Filled.Menu`) で Drawer を開閉 | AC-006 |
+| レスポンシブ | `DrawerVariant.Responsive` + `ClipMode.Always`。Md 未満では MudBlazor 標準のオーバーレイ動作 | AC-005 / AC-006 / REQ-016 |
+| アクティブ表示 | `MudNavLink Match` に `NavigationMatchExtensions.ToNavLinkMatch(item.Match)` を渡す。`Home (/)` は `NavLinkMatch.All`、それ以外はモジュール側が `NavigationMatch.Prefix` を指定（GUD-004） | AC-010 |
+| アイコン | `IconResolver.Resolve(item.Icon)` で SVG 解決。未知キーは `Icons.Material.Filled.Help` へフォールバック（AC-008） | AC-008 |
+| 並び順 | `OrderBy(x => x.Group).ThenBy(x => x.Order).ThenBy(x => x.Title)` でソートし、`GroupBy(x => x.Group)` で `MudNavGroup` にまとめる | AC-013 / AC-009 |
+| エラー UI | 既存 `blazor-error-ui` div は `MainLayout` 内・`MudLayout` 外に維持 | NFR-003 / AC-012 |
+
+> 補足: 並び替えは現在 Razor テンプレート内の式で行っているため、`MainLayout` の再レンダリング毎に評価される。Walking Skeleton 段階では項目数が少なく無視できるが、項目数が増えた場合は `OnInitialized` でフィールドにキャッシュするリファクタリングを検討する（NFR-001 / 仕様 §6）。
 
 ---
 
@@ -172,8 +257,11 @@ namespace EventRegistration.SharedKernel.Application.Navigation;
 
 public enum NavigationMatch
 {
-    Prefix = 0,
-    All = 1,
+    /// <summary>現在のパスが Href で始まる場合にアクティブ。</summary>
+    Prefix,
+
+    /// <summary>現在のパスが Href と完全一致する場合にアクティブ。</summary>
+    All,
 }
 
 public interface INavigationItem
@@ -181,8 +269,8 @@ public interface INavigationItem
     string Title { get; }
     string Href { get; }
     string Icon { get; }              // Shell 側 IconResolver で MudBlazor SVG に解決
-    string? Group { get; }
-    int Order { get; }
+    string Group { get; }             // MudNavGroup 名（必須）
+    int Order { get; }                // 同一グループ内の表示順
     NavigationMatch Match { get; }
 }
 
@@ -190,34 +278,54 @@ public sealed record NavigationItem(
     string Title,
     string Href,
     string Icon,
-    string? Group = null,
-    int Order = 100,
-    NavigationMatch Match = NavigationMatch.Prefix
-) : INavigationItem;
+    string Group,
+    int Order,
+    NavigationMatch Match) : INavigationItem;
 ```
 
-- **配置理由**: `INavigationItem` を `SharedKernel.Application` に置くことで、各モジュールの Application 層は `Web` を参照することなく自モジュールのナビゲーション項目を提供できる（B-1 対応 / CON-006 厳守）。
-- **UI 中立**: `Icon` は `string`、`Match` は自前 `NavigationMatch` enum とし、抽象から MudBlazor / `Microsoft.AspNetCore.Components.Routing` への依存を一切持ち込まない（CON-002 / B-2 対応 / PAT-004）。
+- **配置理由**: `INavigationItem` を `SharedKernel.Application` に置くことで、各モジュールの Application 層は `Web` を参照することなく自モジュールのナビゲーション項目を提供できる（CON-006 厳守）。
+- **UI 中立**: `Icon` は `string`、`Match` は自前 `NavigationMatch` enum とし、抽象から MudBlazor / `Microsoft.AspNetCore.Components.Routing` への依存を一切持ち込まない（CON-002 / PAT-004）。
+- **Group は必須**: 実装上 `Group` を非 null としており、Shell は常に `MudNavGroup` で項目をまとめる。`Home` などグルーピング不要な項目は Shell 側でハードコード済み（§3.1 参照）。
 
 ### 4.2 モジュール側の登録 API
 
 ```csharp
 // EventRegistration.Events.Application
-public static class EventsModuleNavigationExtensions
+public static class EventsNavigationExtensions
 {
-    public static IServiceCollection AddEventsModuleNavigation(this IServiceCollection services);
+    public static IServiceCollection AddEventsModuleNavigation(this IServiceCollection services)
+    {
+        services.AddSingleton<INavigationItem>(new NavigationItem(
+            Title: "イベント管理",
+            Href: "/", // プレースホルダー (将来 /events 等に差し替え)
+            Icon: "Event",
+            Group: "イベント",
+            Order: 100,
+            Match: NavigationMatch.Prefix));
+        return services;
+    }
 }
 
 // EventRegistration.Registrations.Application
-public static class RegistrationsModuleNavigationExtensions
+public static class RegistrationsNavigationExtensions
 {
-    public static IServiceCollection AddRegistrationsModuleNavigation(this IServiceCollection services);
+    public static IServiceCollection AddRegistrationsModuleNavigation(this IServiceCollection services)
+    {
+        services.AddSingleton<INavigationItem>(new NavigationItem(
+            Title: "参加登録",
+            Href: "/", // プレースホルダー (将来 /registrations 等に差し替え)
+            Icon: "HowToReg",
+            Group: "参加者",
+            Order: 200,
+            Match: NavigationMatch.Prefix));
+        return services;
+    }
 }
 ```
 
 - 各モジュールは `services.AddSingleton<INavigationItem>(new NavigationItem(...))` で **1 件以上の項目を Singleton 登録**する（GUD-002 / AC-015）。
-- 本 PR の Walking Skeleton 段階では、いずれのモジュールも `Href = "/"`（プレースホルダー）でルートへ向ける（B-3 / 仕様スコープ外で `/events`・`/registrations` ページは別 Issue 化）。
-- ライフタイム選定理由: ナビゲーション項目は **不変な静的メタデータ**であり、Singleton が最適。Scoped/Transient は無駄なアロケーションを発生させ NFR-002 の「O(1) 相当の登録」原則に反する。
+- 本 PR の Walking Skeleton 段階では、いずれのモジュールも `Href = "/"`（プレースホルダー）でルートへ向ける。`/events` / `/registrations` ページの実装は別 Issue で扱う。
+- ライフタイム選定理由: ナビゲーション項目は **不変な静的メタデータ**であり、Singleton が最適（NFR-002）。
 
 ### 4.3 Shell 側の解決
 
@@ -225,8 +333,8 @@ public static class RegistrationsModuleNavigationExtensions
 @inject IEnumerable<INavigationItem> NavigationItems
 ```
 
-- 1 度だけ列挙して `OrderBy(...).ThenBy(...).ThenBy(...)` でソートし、フィールドにキャッシュする。
-- グルーピングは `GroupBy(item => item.Group)` で行い、`null` グループは直置き、それ以外は `MudNavGroup` でまとめる。
+- `OrderBy(x => x.Group).ThenBy(x => x.Order).ThenBy(x => x.Title).GroupBy(x => x.Group)` で並び替え＋グルーピング。
+- グルーピング結果ごとに `MudNavGroup`（`Expanded="true"`）を生成し、配下に `MudNavLink` を並べる。
 
 ### 4.4 拡張ポイント
 
@@ -234,80 +342,142 @@ public static class RegistrationsModuleNavigationExtensions
 |---|---|
 | 新モジュールのナビゲーション追加 | 当該モジュール `Application` に `AddXxxModuleNavigation()` を追加し、`Program.cs` から呼ぶだけ。Shell コードは無変更（PAT-001） |
 | 1 モジュールから複数項目 | `services.AddSingleton<INavigationItem>(...)` を複数回呼ぶ |
-| アイコンキーの追加 | `IconResolver` のマッピングに 1 行追加（Shell 側のみの変更 / AC-008） |
+| アイコンキーの追加 | `IconResolver` の `IconMap` に 1 行追加（Shell 側のみの変更 / AC-008） |
 
 ---
 
 ## 5. テーマ設定（`AppTheme` / `MudThemeProvider`）
 
-<!-- TODO: Phase 3 で AppTheme.cs の最終確定値を反映 -->
-
 ### 5.1 配置
 
-- ファイル: `EventRegistration.Web/Shell/Theme/AppTheme.cs`（`static class`、`internal` 想定）。
+- ファイル: `EventRegistration.Web/Shell/Theme/AppTheme.cs`（`public static class`）。
 - 公開メンバー: `public static readonly MudTheme Light`。
 
 ### 5.2 配置理由
 
-- `MudTheme` / `PaletteLight` / `Typography` は **MudBlazor 型に依存**するため、`Web`（Composition Root）にのみ存在させる（CON-002 厳守）。SharedKernel やモジュールには絶対に置かない。
+- `MudTheme` / `PaletteLight` / `Typography` は **MudBlazor 型に依存**するため、`Web`（Composition Root）にのみ存在させる（CON-002 厳守）。SharedKernel やモジュールには配置しない。
 
-### 5.3 主要パレット（予定値）
+### 5.3 実装
+
+```csharp
+public static class AppTheme
+{
+    public static readonly MudTheme Light = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#512BD4",        // .NET Purple
+            Secondary = "#68217A",      // Visual Studio Purple
+            Tertiary = "#9B4DCA",
+            AppbarBackground = "#512BD4",
+            DrawerBackground = "#F5F5F5",
+            DrawerText = "#424242",
+            Background = "#FFFFFF",
+            Surface = "#FFFFFF",
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography
+            {
+                FontFamily = ["Roboto", "Helvetica", "Arial", "sans-serif"]
+            }
+        }
+    };
+}
+```
 
 | プロパティ | 値 | 根拠 |
 |---|---|---|
-| `PaletteLight.Primary` | `#512BD4` | AC-007（.NET ブランドカラー） |
-| `PaletteLight.AppbarBackground` | `#512BD4` | AC-007 |
-| `PaletteLight.AppbarText` | `#FFFFFF` | コントラスト確保 |
-| `PaletteDark` | 仮定義のみ | CON-005 拡張余地確保。本 PR では使用しない（`IsDarkMode=false` 固定 / AC-011） |
+| `PaletteLight.Primary` / `AppbarBackground` | `#512BD4` | AC-007（.NET ブランドカラー） |
+| `PaletteLight.Secondary` | `#68217A` | Visual Studio Purple（補色） |
+| `PaletteLight.Tertiary` | `#9B4DCA` | アクセント |
+| `PaletteLight.DrawerBackground` / `DrawerText` | `#F5F5F5` / `#424242` | AppBar とのコントラスト確保 |
+| `Typography.Default.FontFamily` | `Roboto, Helvetica, Arial, sans-serif` | Material Design 既定 |
 
 ### 5.4 適用方法
 
-- `MainLayout.razor` の最上位に `<MudThemeProvider Theme="AppTheme.Light" IsDarkMode="false" />` を配置（REQ-005 / REQ-014 / REQ-015）。
+- `MainLayout.razor` の最上位に `<MudThemeProvider Theme="AppTheme.Light" />` を配置（REQ-005 / REQ-014 / REQ-015）。
+- 本 PR では `IsDarkMode` を明示指定しておらず、MudBlazor の既定（ライト）に従う（AC-011）。ダークモードのトグル UI は本スコープ外。
 
 ---
 
 ## 6. アイコン / Match 変換ヘルパー
 
-<!-- TODO: Phase 3 で IconResolver の最終マッピング表を反映 -->
+### 6.1 `IconResolver`（`Shell/Navigation/IconResolver.cs`、`public static`）
 
-### 6.1 `IconResolver`（`Shell/Navigation/IconResolver.cs`、`internal static`）
+```csharp
+public static class IconResolver
+{
+    private static readonly Dictionary<string, string> IconMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Home"] = Icons.Material.Filled.Home,
+        ["Event"] = Icons.Material.Filled.Event,
+        ["HowToReg"] = Icons.Material.Filled.HowToReg,
+        ["People"] = Icons.Material.Filled.People,
+        ["Settings"] = Icons.Material.Filled.Settings,
+        ["Dashboard"] = Icons.Material.Filled.Dashboard,
+        ["Analytics"] = Icons.Material.Filled.Analytics,
+        ["Notifications"] = Icons.Material.Filled.Notifications,
+        ["Security"] = Icons.Material.Filled.Security,
+        ["Help"] = Icons.Material.Filled.Help,
+    };
 
-- API: `public static string Resolve(string iconName)`
-- マッピング（予定）: 文字列キー（例: `"Material.Filled.Event"`、`"Material.Filled.HowToReg"`、`"Material.Filled.Home"`、`"Material.Filled.People"`）→ `MudBlazor.Icons.Material.Filled.*` の SVG 文字列。
-- 未知キー: `MudBlazor.Icons.Material.Filled.Help` の SVG にフォールバックし、例外を投げない（AC-008）。
+    public static string Resolve(string iconKey)
+    {
+        return IconMap.TryGetValue(iconKey, out var icon) ? icon : Icons.Material.Filled.Help;
+    }
+}
+```
 
-### 6.2 `NavigationMatchExtensions`（同ディレクトリ、`internal static`）
+- API: `public static string Resolve(string iconKey)`
+- マッピング: 短い文字列キー（`Home` / `Event` / `HowToReg` ほか）→ `MudBlazor.Icons.Material.Filled.*` の SVG 文字列。
+- キー比較は `StringComparer.OrdinalIgnoreCase`。
+- 未知キー: `Icons.Material.Filled.Help` SVG にフォールバックし、例外を投げない（AC-008）。
+- アイコンキーを追加する場合は `IconMap` に 1 行追加するだけで Shell・モジュール双方の I/F は影響を受けない。
 
-- API: `public static NavLinkMatch ToNavLinkMatch(this NavigationMatch match)`
-- マッピング: `Prefix → NavLinkMatch.Prefix` / `All → NavLinkMatch.All`（GUD-004）。
+### 6.2 `NavigationMatchExtensions`（同ディレクトリ、`public static`）
+
+```csharp
+public static class NavigationMatchExtensions
+{
+    public static NavLinkMatch ToNavLinkMatch(NavigationMatch match) => match switch
+    {
+        NavigationMatch.All => NavLinkMatch.All,
+        NavigationMatch.Prefix => NavLinkMatch.Prefix,
+        _ => NavLinkMatch.Prefix,
+    };
+}
+```
+
+- API: `public static NavLinkMatch ToNavLinkMatch(NavigationMatch match)`（拡張メソッドではなく静的メソッド呼び出しで利用）。
+- マッピング: `Prefix → NavLinkMatch.Prefix` / `All → NavLinkMatch.All`、未知値はデフォルトで `Prefix`（GUD-004）。
 
 ---
 
 ## 7. テスト方針
 
-<!-- TODO: Phase 3 でテストプロジェクト追加後、ファイル一覧と実テスト数を反映 -->
+本 PR ではテストプロジェクトを追加していない（Walking Skeleton 最小スコープ）。以下のテストは次フェーズの Issue として切り出して追加する想定。
 
-### 7.1 ユニットテスト（MSTest 4.x + FluentAssertions / `csharp-mstest` スキル準拠）
+### 7.1 追加予定のユニットテスト（MSTest 4.x + FluentAssertions / `csharp-mstest` スキル準拠）
 
-| 対象 | テストプロジェクト | 主要テストケース | 関連 AC |
+| 対象 | 想定テストプロジェクト | 主要テストケース | 関連 AC |
 |---|---|---|---|
-| `NavigationItem` record | `EventRegistration.SharedKernel.Application.Tests`（新規） | デフォルト値（`Order=100` / `Match=Prefix` / `Group=null`）、record の値ベース等価性 | AC-014 |
-| `NavigationMatch` enum | 同上 | `Prefix=0`, `All=1` の数値固定（B-2 後方互換） | AC-014 |
-| `AddEventsModuleNavigation` / `AddRegistrationsModuleNavigation` | `EventRegistration.Web.Tests`（新規）または各モジュール `Application.Tests` | 呼び出し後 `ServiceCollection` から `INavigationItem` が 1 件以上 Singleton として解決でき、`Href == "/"` であること | AC-015 |
-| `IconResolver.Resolve` | `EventRegistration.Web.Tests` | 既知キーは対応 SVG / 未知キーは `Help` SVG | AC-008 |
+| `NavigationItem` record | `EventRegistration.SharedKernel.Application.Tests` | record の値ベース等価性・各プロパティ反映 | AC-014 |
+| `NavigationMatch` enum | 同上 | `Prefix` / `All` の値が安定していること | AC-014 |
+| `AddEventsModuleNavigation` / `AddRegistrationsModuleNavigation` | `EventRegistration.Events.Application.Tests` / `EventRegistration.Registrations.Application.Tests` | 呼び出し後 `ServiceCollection` から `INavigationItem` が 1 件以上 Singleton として解決でき、各 `Title` / `Group` / `Icon` が期待値であること | AC-015 |
+| `IconResolver.Resolve` | `EventRegistration.Web.Tests` | 既知キー（大小文字・全エントリ）→ 対応 SVG / 未知キー → `Help` SVG | AC-008 |
 | `NavigationMatchExtensions.ToNavLinkMatch` | 同上 | `Prefix → NavLinkMatch.Prefix` / `All → NavLinkMatch.All` | GUD-004 |
-| Composition Root 統合 | 同上（最小ホスト + ServiceCollection 検証） | `IServiceProvider.GetServices<INavigationItem>()` が 2 件以上を含むこと | AC-002 / AC-003 |
-| ナビゲーション並び替えロジック | 同上（純関数として切り出してテスト） | `Group → Order → Title` の昇順 | AC-013 / AC-009 |
-| アーキテクチャテスト | 同上 | `Modules.*.Application/Infrastructure` および `SharedKernel.*` が `MudBlazor` および `EventRegistration.Web` を参照しないこと（NetArchTest または手書き `AssemblyName` 検査） | AC-014 / CON-002 / CON-006 |
+| Composition Root 統合 | 同上 | `IServiceProvider.GetServices<INavigationItem>()` が 2 件以上含むこと | AC-002 / AC-003 |
+| アーキテクチャテスト | 同上 | `Modules.*.Application/Infrastructure` および `SharedKernel.*` が `MudBlazor` および `EventRegistration.Web` を参照しないこと | AC-014 / CON-002 / CON-006 |
 
-### 7.2 UI レンダリングテスト（任意 / 状況により）
+### 7.2 UI レンダリングテスト（任意）
 
-- 本 PR では bUnit による `MainLayout` 最小描画テスト（`MudNavLink` 数 ≥ 2、`MudAppBar` のアプリ名表示、`MudNavGroup` がグループ項目を内包する）を追加候補とする。
-- MudBlazor の bUnit 対応状況に依存し導入コストが高い場合は、**本 PR では手動検証 + 単体ロジックテストに留め、E2E（Playwright）は別 Issue 化**する（仕様 §6 に記載のとおり、Playwright は本リポジトリ未導入）。
+- bUnit による `MainLayout` 最小描画テスト（`MudNavLink` 数 ≥ 3、`MudAppBar` のアプリ名表示、`MudNavGroup` がグループ項目を内包する）は別 Issue 候補。
+- MudBlazor の bUnit 対応コストが高い場合は、手動検証 + 単体ロジックテスト + Tester による E2E シナリオで代替する。
 
 ### 7.3 手動検証（AC-003 / AC-007 / AC-010 / AC-011）
 
-- `dotnet run --project src/EventRegistration.Web` で起動し、AppBar・Drawer・テーマ色・アクティブハイライト・ライトモード固定をスクリーンショットで PR 説明に添付。
+- `dotnet run --project src/EventRegistration.AppHost` で Aspire 経由で起動し、AppBar・Drawer・テーマ色（`#512BD4`）・アクティブハイライト・ライトモード固定を確認する。
 - Tester エージェントが Phase 3 終盤でシナリオ実行する。
 
 ### 7.4 ビルド・テスト実行コマンド
@@ -321,17 +491,14 @@ dotnet test EventRegistration.sln
 
 ### 7.5 カバレッジ目標
 
-- Shell/Navigation 関連クラス（`IconResolver`、`NavigationMatchExtensions`、ナビゲーション並び替え、各 `AddXxxModuleNavigation`）の **行カバレッジ 80% 以上**（仕様 §6 Coverage Requirements）。
+- 次フェーズでテスト追加する際は、Shell/Navigation 関連クラス（`IconResolver`、`NavigationMatchExtensions`、各 `AddXxxModuleNavigation`）の **行カバレッジ 80% 以上**を目標とする（仕様 §6 Coverage Requirements）。
 
 ---
 
-## 8. TODO（Phase 3 / Step 3.4.5 で更新する箇所）
+## 8. 既知の制約・今後の検討事項
 
-- [ ] MudBlazor の確定バージョンを §2.1 に記載
-- [ ] `App.razor` の最終 head/body 差分を §2.3 に追記
-- [ ] `MainLayout.razor` の最終 razor 全文を §3 に埋め込み
-- [ ] `AppTheme.Light` の最終定義（Typography 含む）を §5.3 に反映
-- [ ] `IconResolver` の最終マッピング表を §6.1 に反映
-- [ ] テストプロジェクト構成の実態と実テスト数を §1 ディレクトリ構成（`src/tests/`）および §7.1 に反映
-- [ ] 関連コメントの正式 URL（`#issuecomment-XXXX`）を「概要」末尾に反映
-- [ ] PR 番号を冒頭メタ情報に反映
+- **Href プレースホルダー**: `Events` / `Registrations` モジュールの `Href` はいずれも `/`（ホーム）に向いており、実際の専用ページは未実装。後続 Issue で `/events` / `/registrations` ページを追加した時点で各 `AddXxxModuleNavigation()` の `Href` を差し替える。
+- **テスト未追加**: 本 PR スコープでは UI Shell の Razor / 拡張クラスのユニットテストを追加していない（§7 参照）。
+- **ナビゲーション並び替えの再評価**: 現状は Razor テンプレートで毎レンダー実行。項目数が増えた場合は `OnInitialized` でフィールドキャッシュ化する。
+- **ダークモード対応**: `IsDarkMode` トグル UI とパレット切り替えは本スコープ外。
+- **`Group` 必須化**: 仕様初版では `Group` を nullable として「グループ無しは直置き」としていたが、実装では非 null に統一し `Home` 項目のみ Shell 側でハードコードする方針に変更した。

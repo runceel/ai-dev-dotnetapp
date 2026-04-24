@@ -25,6 +25,7 @@
 ### 関連ドキュメント
 
 - 仕様: [event-registration-system-spec.md](./event-registration-system-spec.md)
+- UI Shell 設計（MudBlazor 基盤 + ナビゲーション Self-Registration）: [ui-shell-design.md](./ui-shell-design.md)
 - 設計方針コメント（Architect / Step 2.1）: Issue #1 [comment-id: 4311059746](https://github.com/runceel/ai-dev-dotnetapp/issues/1#issuecomment-4311059746)
 - 実装計画コメント（Developer / Step 2.2）: Issue #1 [comment-id: 4311073160](https://github.com/runceel/ai-dev-dotnetapp/issues/1#issuecomment-4311073160)
 
