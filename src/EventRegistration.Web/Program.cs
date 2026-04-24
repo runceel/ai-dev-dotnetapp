@@ -1,4 +1,5 @@
 using EventRegistration.Events.Application.Navigation;
+using EventRegistration.Events.Infrastructure;
 using EventRegistration.Registrations.Application.Navigation;
 using EventRegistration.Web.Components;
 using MudBlazor.Services;
@@ -13,6 +14,9 @@ builder.Services.AddMudServices();
 // 各モジュールが提供するナビゲーション項目を登録
 builder.Services.AddEventsModuleNavigation();
 builder.Services.AddRegistrationsModuleNavigation();
+
+// Events モジュールの Infrastructure（DbContext / リポジトリ / ユースケース）を登録
+builder.Services.AddEventsModuleInfrastructure();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

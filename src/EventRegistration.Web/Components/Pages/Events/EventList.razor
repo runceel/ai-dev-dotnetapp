@@ -1,0 +1,78 @@
+@page "/events"
+@inject EventRegistration.Events.Application.UseCases.GetEventsUseCase GetEvents
+@inject NavigationManager Navigation
+
+<PageTitle>イベント一覧</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">イベント一覧</MudText>
+
+<MudButton Variant="Variant.Filled"
+           Color="Color.Primary"
+           StartIcon="@Icons.Material.Filled.Add"
+           Href="/events/create"
+           Class="mb-4">
+    新しいイベントを作成
+</MudButton>
+
+@if (_events is null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_events.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">イベントがまだ登録されていません。</MudAlert>
+}
+else
+{
+    <MudGrid>
+        @foreach (var evt in _events)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Style="cursor: pointer;" @onclick="() => NavigateToDetail(evt.Id)">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@evt.Name</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Color="Color.Default">
+                            <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" Class="mr-1" />
+                            @evt.ScheduledAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Default" Class="mt-1">
+                            <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Class="mr-1" />
+                            定員: @evt.Capacity 名
+                        </MudText>
+                        @if (!string.IsNullOrWhiteSpace(evt.Description))
+                        {
+                            <MudText Typo="Typo.body2" Class="mt-2 mud-text-secondary">
+                                @TruncateDescription(evt.Description)
+                            </MudText>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private IReadOnlyList<EventRegistration.Events.Domain.Event>? _events;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _events = await GetEvents.ExecuteAsync();
+    }
+
+    private void NavigateToDetail(Guid id)
+    {
+        Navigation.NavigateTo($"/events/{id}");
+    }
+
+    private static string TruncateDescription(string description, int maxLength = 100)
+    {
+        return description.Length <= maxLength
+            ? description
+            : string.Concat(description.AsSpan(0, maxLength), "…");
+    }
+}

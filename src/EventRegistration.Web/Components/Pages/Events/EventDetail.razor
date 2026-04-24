@@ -1,0 +1,75 @@
+@page "/events/{Id:guid}"
+@inject EventRegistration.Events.Application.UseCases.GetEventByIdUseCase GetEventById
+
+<PageTitle>イベント詳細</PageTitle>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_event is null)
+{
+    <MudAlert Severity="Severity.Warning" Class="mb-4">
+        指定されたイベントが見つかりませんでした。
+    </MudAlert>
+    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/events">
+        イベント一覧に戻る
+    </MudButton>
+}
+else
+{
+    <MudText Typo="Typo.h4" Class="mb-4">@_event.Name</MudText>
+
+    <MudPaper Class="pa-4 mb-4" MaxWidth="800px">
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.subtitle2" Color="Color.Default" Class="mud-text-secondary">開催日時</MudText>
+                <MudText Typo="Typo.body1">@_event.ScheduledAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.subtitle2" Color="Color.Default" Class="mud-text-secondary">定員</MudText>
+                <MudText Typo="Typo.body1">@_event.Capacity 名</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.subtitle2" Color="Color.Default" Class="mud-text-secondary">残り枠数</MudText>
+                <MudText Typo="Typo.body1">@RemainingCapacity 名</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.subtitle2" Color="Color.Default" Class="mud-text-secondary">作成日時</MudText>
+                <MudText Typo="Typo.body1">@_event.CreatedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</MudText>
+            </MudItem>
+            @if (!string.IsNullOrWhiteSpace(_event.Description))
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Default" Class="mud-text-secondary">説明</MudText>
+                    <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@_event.Description</MudText>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudPaper>
+
+    <MudButton Variant="Variant.Text"
+               Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.ArrowBack"
+               Href="/events">
+        イベント一覧に戻る
+    </MudButton>
+}
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private EventRegistration.Events.Domain.Event? _event;
+    private bool _loading = true;
+
+    // Registrations モジュール実装後に確定参加者数を反映する
+    private int ConfirmedRegistrations => 0;
+    private int RemainingCapacity => _event is not null ? _event.Capacity - ConfirmedRegistrations : 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _event = await GetEventById.ExecuteAsync(Id);
+        _loading = false;
+    }
+}

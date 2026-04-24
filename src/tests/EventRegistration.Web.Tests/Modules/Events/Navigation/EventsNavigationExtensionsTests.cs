@@ -28,6 +28,7 @@ public sealed class EventsNavigationExtensionsTests
         var item = provider.GetServices<INavigationItem>().Single();
 
         Assert.AreEqual("イベント管理", item.Title);
+        Assert.AreEqual("/events", item.Href);
         Assert.AreEqual("Event", item.Icon);
         Assert.AreEqual("イベント", item.Group);
         Assert.AreEqual(100, item.Order);
