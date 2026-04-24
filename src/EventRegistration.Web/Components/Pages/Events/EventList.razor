@@ -1,0 +1,77 @@
+@page "/events"
+@inject EventRegistration.Events.Application.IEventsAppService EventsAppService
+
+<PageTitle>イベント一覧</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">イベント一覧</MudText>
+
+<MudButton Variant="Variant.Filled"
+           Color="Color.Primary"
+           StartIcon="@Icons.Material.Filled.Add"
+           Href="/events/create"
+           Class="mb-4">
+    イベントを作成
+</MudButton>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_events.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">イベントが登録されていません。</MudAlert>
+}
+else
+{
+    <MudGrid>
+        @foreach (var ev in _events)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Class="cursor-pointer" @onclick="() => NavigateToDetail(ev.Id)">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@ev.Name</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIcon Icon="@Icons.Material.Filled.Event" />
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Color="Color.Primary">
+                            <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" Class="mr-1" />
+                            @ev.ScheduledAt.ToString("yyyy/MM/dd HH:mm")
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1">
+                            <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Class="mr-1" />
+                            定員: @ev.Capacity 名
+                        </MudText>
+                        @if (!string.IsNullOrEmpty(ev.Description))
+                        {
+                            <MudText Typo="Typo.body2" Class="mt-2 mud-text-secondary">
+                                @(ev.Description.Length > 100 ? ev.Description[..100] + "…" : ev.Description)
+                            </MudText>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private IReadOnlyList<EventRegistration.Events.Application.EventDto> _events = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _events = await EventsAppService.GetAllAsync();
+        _loading = false;
+    }
+
+    private void NavigateToDetail(Guid id)
+    {
+        Navigation.NavigateTo($"/events/{id}");
+    }
+}

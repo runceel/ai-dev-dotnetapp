@@ -1,0 +1,101 @@
+@page "/events/create"
+@inject EventRegistration.Events.Application.IEventsAppService EventsAppService
+@inject NavigationManager Navigation
+
+<PageTitle>イベント作成</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">イベント作成</MudText>
+
+<MudCard Class="pa-4" Style="max-width: 600px;">
+    <MudForm @ref="_form" @bind-IsValid="_isValid">
+        <MudTextField @bind-Value="_input.Name"
+                      Label="イベント名"
+                      Required="true"
+                      RequiredError="イベント名は必須です。"
+                      Class="mb-3" />
+
+        <MudDatePicker @bind-Date="_date"
+                       Label="開催日"
+                       Required="true"
+                       RequiredError="開催日は必須です。"
+                       DateFormat="yyyy/MM/dd"
+                       Class="mb-3" />
+
+        <MudTimePicker @bind-Time="_time"
+                       Label="開催時刻"
+                       Required="true"
+                       RequiredError="開催時刻は必須です。"
+                       Class="mb-3" />
+
+        <MudNumericField @bind-Value="_input.Capacity"
+                         Label="定員"
+                         Required="true"
+                         RequiredError="定員は必須です。"
+                         Min="1"
+                         Class="mb-3" />
+
+        <MudTextField @bind-Value="_input.Description"
+                      Label="説明"
+                      Lines="4"
+                      Class="mb-4" />
+
+        <div class="d-flex gap-2">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       OnClick="SubmitAsync"
+                       Disabled="@(!_isValid || _submitting)">
+                @if (_submitting)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                }
+                保存
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       Href="/events">
+                キャンセル
+            </MudButton>
+        </div>
+    </MudForm>
+</MudCard>
+
+@if (_errorMessage is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
+}
+
+@code {
+    private MudForm _form = default!;
+    private readonly EventRegistration.Events.Application.CreateEventInput _input = new();
+    private DateTime? _date;
+    private TimeSpan? _time;
+    private bool _isValid;
+    private bool _submitting;
+    private string? _errorMessage;
+
+    private async Task SubmitAsync()
+    {
+        await _form.ValidateAsync();
+        if (!_isValid) return;
+
+        _submitting = true;
+        _errorMessage = null;
+
+        try
+        {
+            _input.ScheduledAt = new DateTimeOffset(
+                _date!.Value.Add(_time!.Value),
+                TimeZoneInfo.Local.GetUtcOffset(DateTime.Now));
+
+            var created = await EventsAppService.CreateAsync(_input);
+            Navigation.NavigateTo($"/events/{created.Id}");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+}
