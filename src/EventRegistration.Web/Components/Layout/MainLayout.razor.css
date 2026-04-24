@@ -1,6 +1,15 @@
 /* MudBlazor がレイアウト全般のスタイルを管理するため、
    Blazor 標準のエラー UI 用スタイルのみ残す。 */
 
+/* ドロワー内ナビメニューを縦スクロール可能にする (AC-010 対応)。
+   MudDrawer は flex container なので、MudNavMenu を包むラッパーを
+   flex: 1 + overflow-y: auto に設定し、項目が増えても下部までスクロールできるようにする。 */
+::deep .nav-menu-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
 #blazor-error-ui {
     color-scheme: light only;
     background: lightyellow;

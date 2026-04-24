@@ -17,26 +17,28 @@
         <MudDrawerHeader>
             <MudText Typo="Typo.h6">メニュー</MudText>
         </MudDrawerHeader>
-        <MudNavMenu>
-            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">ホーム</MudNavLink>
-            @foreach (var group in NavigationItems
-                .OrderBy(x => x.Group)
-                .ThenBy(x => x.Order)
-                .ThenBy(x => x.Title)
-                .GroupBy(x => x.Group))
-            {
-                <MudNavGroup Title="@group.Key" Expanded="true">
-                    @foreach (var item in group)
-                    {
-                        <MudNavLink Href="@item.Href"
-                                    Match="@NavigationMatchExtensions.ToNavLinkMatch(item.Match)"
-                                    Icon="@IconResolver.Resolve(item.Icon)">
-                            @item.Title
-                        </MudNavLink>
-                    }
-                </MudNavGroup>
-            }
-        </MudNavMenu>
+        <div class="nav-menu-scroll">
+            <MudNavMenu>
+                <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">ホーム</MudNavLink>
+                @foreach (var group in NavigationItems
+                    .OrderBy(x => x.Group)
+                    .ThenBy(x => x.Order)
+                    .ThenBy(x => x.Title)
+                    .GroupBy(x => x.Group))
+                {
+                    <MudNavGroup Title="@group.Key" Expanded="true">
+                        @foreach (var item in group)
+                        {
+                            <MudNavLink Href="@item.Href"
+                                        Match="@NavigationMatchExtensions.ToNavLinkMatch(item.Match)"
+                                        Icon="@IconResolver.Resolve(item.Icon)">
+                                @item.Title
+                            </MudNavLink>
+                        }
+                    </MudNavGroup>
+                }
+            </MudNavMenu>
+        </div>
     </MudDrawer>
 
     <MudMainContent Class="pt-16 px-4">
