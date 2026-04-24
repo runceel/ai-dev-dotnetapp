@@ -15,7 +15,7 @@ public static class EventsNavigationExtensions
     {
         services.AddSingleton<INavigationItem>(new NavigationItem(
             Title: "イベント管理",
-            Href: "/", // プレースホルダー (将来 /events 等に差し替え)
+            Href: "/events",
             Icon: "Event",
             Group: "イベント",
             Order: 100,
