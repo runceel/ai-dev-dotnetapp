@@ -81,6 +81,7 @@ ai-dev-dotnetapp/
 ├── global.json
 ├── docs/
 │   ├── architecture.md
+│   ├── data-access-strategy.md
 │   └── event-registration-system-spec.md
 └── src/
     ├── EventRegistration.AppHost/             # Aspire オーケストレーション
@@ -141,6 +142,7 @@ Get-ChildItem -Recurse -Path src/Modules/Registrations -Filter *.csproj | Select
 | ドキュメント | 内容 |
 |---|---|
 | [docs/architecture.md](./docs/architecture.md) | アーキテクチャ設計（プロジェクト構成・参照方向・テスト戦略・リスク・AC トレーサビリティ）|
+| [docs/data-access-strategy.md](./docs/data-access-strategy.md) | データアクセス方針（EF Core + InMemoryDatabase 採用方針・`DbContext` 配置・DI 拡張メソッドパターン）|
 | [docs/event-registration-system-spec.md](./docs/event-registration-system-spec.md) | システム機能仕様（業務要件・将来実装予定）|
 
 ---
