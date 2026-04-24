@@ -1,0 +1,95 @@
+<MudPaper Class="pa-4">
+    <EditForm Model="_model" OnValidSubmit="HandleSubmit" FormName="registerParticipant">
+        <DataAnnotationsValidator />
+
+        <MudTextField @bind-Value="_model.ParticipantName"
+                      Label="参加者名"
+                      Required="true"
+                      RequiredError="参加者名は必須です"
+                      Class="mb-3" />
+
+        <MudTextField @bind-Value="_model.Email"
+                      Label="メールアドレス"
+                      Required="true"
+                      RequiredError="メールアドレスは必須です"
+                      InputType="InputType.Email"
+                      Class="mb-3" />
+
+        @if (!string.IsNullOrEmpty(_message))
+        {
+            <MudAlert Severity="@_severity" Class="mb-3">@_message</MudAlert>
+        }
+
+        <MudButton ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Disabled="_submitting"
+                   FullWidth="true">
+            @if (_submitting)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            参加登録
+        </MudButton>
+    </EditForm>
+</MudPaper>
+
+@code {
+    [Parameter] public Guid EventId { get; set; }
+    [Parameter] public EventCallback OnRegistered { get; set; }
+
+    [Inject] private RegisterParticipantUseCase RegisterUseCase { get; set; } = default!;
+
+    private readonly RegistrationFormModel _model = new();
+    private bool _submitting;
+    private string? _message;
+    private Severity _severity;
+
+    private async Task HandleSubmit()
+    {
+        _submitting = true;
+        _message = null;
+
+        try
+        {
+            var result = await RegisterUseCase.ExecuteAsync(
+                EventId,
+                _model.ParticipantName!,
+                _model.Email!);
+
+            if (result.IsSuccess)
+            {
+                var statusText = result.Registration.Status == RegistrationStatus.Confirmed
+                    ? "参加確定"
+                    : "キャンセル待ち";
+                _message = $"登録が完了しました（{statusText}）。";
+                _severity = result.Registration.Status == RegistrationStatus.Confirmed
+                    ? Severity.Success
+                    : Severity.Warning;
+                _model.ParticipantName = null;
+                _model.Email = null;
+                await OnRegistered.InvokeAsync();
+            }
+            else
+            {
+                _message = result.ErrorMessage;
+                _severity = Severity.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+            _severity = Severity.Error;
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private sealed class RegistrationFormModel
+    {
+        public string? ParticipantName { get; set; }
+        public string? Email { get; set; }
+    }
+}
