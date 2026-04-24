@@ -8,6 +8,10 @@
     <ProjectReference Include="..\Modules\Registrations\EventRegistration.Registrations.Infrastructure\EventRegistration.Registrations.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MudBlazor" Version="9.4.0" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
