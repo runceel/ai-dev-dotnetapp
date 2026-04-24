@@ -1,3 +1,6 @@
+/* MudBlazor がレイアウト全般のスタイルを管理するため、
+   Blazor 標準のエラー UI 用スタイルのみ残す。 */
+
 #blazor-error-ui {
     color-scheme: light only;
     background: lightyellow;
