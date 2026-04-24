@@ -2,6 +2,8 @@
 
 > 対象: イベント参加登録システム基盤（SPEC: [event-registration-system-spec.md](./event-registration-system-spec.md) / Issue: [#1](https://github.com/runceel/ai-dev-dotnetapp/issues/1) / PR: [#2](https://github.com/runceel/ai-dev-dotnetapp/pull/2)）
 > ステータス: **実装反映済み（Phase 3 / Step 3.4.5）**。`feature/1-bootstrap-solution` ブランチでビルド成功済み（エラー 0 / 警告 0）。
+>
+> **更新（Issue #3 / UI Shell）**: MudBlazor ベースの UI Shell とナビゲーション Self-Registration 機構の導入に伴い、§1 ディレクトリ構成と本ドキュメント末尾の「UI Shell 導入差分」セクションを更新。Shell 実装の詳細は [ui-shell-design.md](./ui-shell-design.md) を参照。
 
 ---
 
@@ -52,12 +54,17 @@ ai-dev-dotnetapp/
     │   ├── Extensions.cs                         # AddServiceDefaults / MapDefaultEndpoints
     │   └── EventRegistration.ServiceDefaults.csproj
     ├── EventRegistration.Web/                    # Blazor Web App (Server / Empty) + Composition Root
-    │   ├── Program.cs                            # AddServiceDefaults / MapDefaultEndpoints の 2 行追加
-    │   ├── EventRegistration.Web.csproj
+    │   ├── Program.cs                            # AddServiceDefaults / AddMudServices / AddXxxModuleNavigation / MapDefaultEndpoints
+    │   ├── EventRegistration.Web.csproj          # PackageReference: MudBlazor 9.4.0
     │   ├── Components/
     │   │   ├── App.razor / Routes.razor / _Imports.razor
     │   │   ├── Layout/MainLayout.razor (.css) / ReconnectModal.razor (.css/.js)
     │   │   └── Pages/Home.razor / Error.razor / NotFound.razor
+    │   ├── Shell/                                # UI Shell（Issue #3 で追加 / 詳細は ui-shell-design.md）
+    │   │   ├── Theme/AppTheme.cs                 # MudTheme（.NET ブランドカラー #512BD4）
+    │   │   └── Navigation/
+    │   │       ├── IconResolver.cs               # アイコンキー → MudBlazor SVG 解決（未知キーは Help へフォールバック）
+    │   │       └── NavigationMatchExtensions.cs  # NavigationMatch → NavLinkMatch 変換
     │   ├── wwwroot/app.css
     │   ├── Properties/launchSettings.json
     │   ├── appsettings.json
@@ -65,19 +72,31 @@ ai-dev-dotnetapp/
     └── Modules/
         ├── SharedKernel/
         │   ├── EventRegistration.SharedKernel.Domain/           (.gitkeep)
-        │   ├── EventRegistration.SharedKernel.Application/      (.gitkeep)
+        │   ├── EventRegistration.SharedKernel.Application/      # Navigation/{INavigationItem,NavigationItem,NavigationMatch}.cs
         │   └── EventRegistration.SharedKernel.Infrastructure/   (.gitkeep)
         ├── Events/
         │   ├── EventRegistration.Events.Domain/                 (.gitkeep)
-        │   ├── EventRegistration.Events.Application/            (.gitkeep)
+        │   ├── EventRegistration.Events.Application/            # Navigation/EventsNavigationExtensions.cs（DI 登録拡張）
         │   └── EventRegistration.Events.Infrastructure/         (.gitkeep)
         └── Registrations/
             ├── EventRegistration.Registrations.Domain/          (.gitkeep)
-            ├── EventRegistration.Registrations.Application/     (.gitkeep)
+            ├── EventRegistration.Registrations.Application/     # Navigation/RegistrationsNavigationExtensions.cs（DI 登録拡張）
             └── EventRegistration.Registrations.Infrastructure/  (.gitkeep)
 ```
 
-> 注: Web プロジェクトの `Components/` 配下の Razor ファイル（`App.razor` / `Routes.razor` / `Layout/*` / `Pages/{Home,Error,NotFound}.razor` / `wwwroot/app.css`）はすべて `dotnet new blazor --interactivity Server --empty` テンプレートが生成した既定ファイルで、**Counter / Weather などのサンプル UI は含まれない**（AC-011 充足）。テンプレート出力は改変していない。
+> 注 1: Web プロジェクトの `Components/` 配下の Razor ファイル（`App.razor` / `Routes.razor` / `Layout/*` / `Pages/{Home,Error,NotFound}.razor` / `wwwroot/app.css`）はすべて `dotnet new blazor --interactivity Server --empty` テンプレートが生成した既定ファイルで、**Counter / Weather などのサンプル UI は含まれない**（AC-011 / Issue #1）。`MainLayout.razor` のみ Issue #3 で MudBlazor ベースに置き換え済み。
+>
+> 注 2: `Shell/` 配下および各モジュール `Application/Navigation/` 配下のファイルは Issue #3 で追加。Modules 側からは MudBlazor / `EventRegistration.Web` を参照しない（Issue #3 AC-014）。Shell 実装の責務分離・Self-Registration パターンの詳細は [ui-shell-design.md](./ui-shell-design.md) を参照。
+
+### 1.1 追加 NuGet パッケージ（Issue #3）
+
+| プロジェクト | パッケージ | バージョン | 用途 |
+|---|---|---|---|
+| `EventRegistration.Web` | `MudBlazor` | 9.4.0 | UI コンポーネントライブラリ（AppBar / Drawer / NavLink / Theme） |
+| `EventRegistration.Events.Application` | `Microsoft.Extensions.DependencyInjection.Abstractions` | 10.0.0 | `IServiceCollection` 拡張メソッド（`AddEventsModuleNavigation`）の実装に必要な最小依存 |
+| `EventRegistration.Registrations.Application` | `Microsoft.Extensions.DependencyInjection.Abstractions` | 10.0.0 | 同上（`AddRegistrationsModuleNavigation`） |
+
+> `SharedKernel.Application` は DI Abstractions を参照しない（純粋な型定義のみ提供 / Issue #3 設計方針）。
 
 ソリューションフォルダ階層（`.sln` 内、IDE 表示用）:
 
@@ -119,7 +138,7 @@ EventRegistration.sln
 | レイヤー | 責務 | 本仕様時点の状態 |
 |---|---|---|
 | `<Module>.Domain` | エンティティ・値オブジェクト・ドメインサービス・ドメイン例外。フレームワーク非依存 | 空（`Class1.cs` 削除 + `.gitkeep` のみ） |
-| `<Module>.Application` | UseCase / アプリケーションサービス / 抽象（Repository インターフェース等） | 空（同上） |
+| `<Module>.Application` | UseCase / アプリケーションサービス / 抽象（Repository インターフェース等） | Issue #1 時点では空。Issue #3 で **`SharedKernel.Application` に `Navigation/{INavigationItem,NavigationItem,NavigationMatch}.cs`** を、**`Events.Application` / `Registrations.Application` に `Navigation/<Module>NavigationExtensions.cs`** を追加（UI Shell の Self-Registration 機構） |
 | `<Module>.Infrastructure` | 永続化・外部 API・メッセージング等の具象実装 | 空（同上） |
 
 ### 2.3 モジュール別の位置づけ
@@ -238,7 +257,7 @@ sequenceDiagram
 |---|---|---|
 | CON-001 | 全プロジェクトの TFM は `net10.0` | `dotnet new ... -f net10.0` 統一 |
 | CON-002 | Web は Blazor Web App（Server interactivity / Empty） | `dotnet new blazor --interactivity Server --empty` |
-| CON-005 | 追加 NuGet パッケージは導入しない | テンプレート既定参照のみ |
+| CON-005 | 追加 NuGet パッケージは導入しない（Issue #1 時点） | テンプレート既定参照のみ。**Issue #3 で UI Shell 用に `MudBlazor` / `Microsoft.Extensions.DependencyInjection.Abstractions` を限定的に追加**（§1.1 参照） |
 | CON-007 | `SharedKernel.Domain` は参照ゼロ | `dotnet list reference` 確認 |
 | CON-008 | 業務モジュール間の直接参照禁止 | `dotnet list reference` 確認 |
 | CON-009 | モジュール系プロジェクトを Aspire リソースとして登録しない | AppHost コードレビュー |
