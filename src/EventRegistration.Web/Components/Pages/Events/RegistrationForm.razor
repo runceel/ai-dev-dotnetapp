@@ -90,6 +90,8 @@
     private sealed class RegistrationFormModel
     {
         public string? ParticipantName { get; set; }
+
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "メールアドレスの形式が正しくありません。")]
         public string? Email { get; set; }
     }
 }

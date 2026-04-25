@@ -80,9 +80,10 @@
                 return;
             }
 
+            var eventDateTime = _model.ScheduledDate.Value.Add(_model.ScheduledTime.Value);
             var scheduledAt = new DateTimeOffset(
-                _model.ScheduledDate.Value.Add(_model.ScheduledTime.Value),
-                TimeZoneInfo.Local.GetUtcOffset(DateTime.Now));
+                eventDateTime,
+                TimeZoneInfo.Local.GetUtcOffset(eventDateTime));
 
             var ev = await CreateEventUseCase.ExecuteAsync(
                 _model.Name!,

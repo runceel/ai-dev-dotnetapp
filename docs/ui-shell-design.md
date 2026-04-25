@@ -297,7 +297,7 @@ public static class EventsNavigationExtensions
     {
         services.AddSingleton<INavigationItem>(new NavigationItem(
             Title: "イベント管理",
-            Href: "/", // プレースホルダー (将来 /events 等に差し替え)
+            Href: "/events",
             Icon: "Event",
             Group: "イベント",
             Order: 100,
@@ -313,7 +313,7 @@ public static class RegistrationsNavigationExtensions
     {
         services.AddSingleton<INavigationItem>(new NavigationItem(
             Title: "参加登録",
-            Href: "/", // プレースホルダー (将来 /registrations 等に差し替え)
+            Href: "/events",
             Icon: "HowToReg",
             Group: "参加者",
             Order: 200,
@@ -324,7 +324,7 @@ public static class RegistrationsNavigationExtensions
 ```
 
 - 各モジュールは `services.AddSingleton<INavigationItem>(new NavigationItem(...))` で **1 件以上の項目を Singleton 登録**する（GUD-002 / AC-002 / AC-008）。
-- 本 PR の Walking Skeleton 段階では、いずれのモジュールも `Href = "/"`（プレースホルダー）でルートへ向ける。`/events` / `/registrations` ページの実装は別 Issue で扱う。
+- `Events` / `Registrations` モジュールはいずれも `Href = "/events"` を指す（Registrations モジュールは独立した一覧ページを持たず、イベント詳細画面内のコンポーネントとして提供されるため、現状はイベント一覧へ誘導する）。
 - ライフタイム選定理由: ナビゲーション項目は **不変な静的メタデータ**であり、Singleton が最適（NFR-002）。
 
 ### 4.3 Shell 側の解決
@@ -497,7 +497,7 @@ dotnet test EventRegistration.sln
 
 ## 8. 既知の制約・今後の検討事項
 
-- **Href プレースホルダー**: `Events` / `Registrations` モジュールの `Href` はいずれも `/`（ホーム）に向いており、実際の専用ページは未実装。後続 Issue で `/events` / `/registrations` ページを追加した時点で各 `AddXxxModuleNavigation()` の `Href` を差し替える。
+- **ナビゲーション Href の現状**: `Events` / `Registrations` モジュールの `Href` はいずれも `/events`（イベント一覧）を指す。Registrations は独立ページを持たずイベント詳細内のコンポーネントとして実装されているため、専用ルート（例: `/registrations`）を追加する場合は別 Issue で扱う。
 - **テスト追加済み**: `src/tests/EventRegistration.Web.Tests/` に 33 件のユニットテストを追加（`IconResolver` / `NavigationMatchExtensions` / `NavigationItem` / 各モジュール DI 拡張等）。bUnit による UI レンダリングテスト・アーキテクチャテストは次フェーズ候補。
 - **ナビゲーション並び替えの再評価**: 現状は Razor テンプレートで毎レンダー実行。項目数が増えた場合は `OnInitialized` でフィールドキャッシュ化する。
 - **ダークモード対応**: `IsDarkMode` トグル UI とパレット切り替えは本スコープ外。

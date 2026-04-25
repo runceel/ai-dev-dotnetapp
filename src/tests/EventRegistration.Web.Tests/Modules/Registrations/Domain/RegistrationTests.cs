@@ -115,6 +115,27 @@ public sealed class RegistrationTests
     }
 
     [TestMethod]
+    public void Create_InvalidEmailFormat_ThrowsArgumentException()
+    {
+        Assert.ThrowsException<ArgumentException>(
+            () => Registration.Create(Guid.NewGuid(), "テスト", "invalid-email", RegistrationStatus.Confirmed));
+    }
+
+    [TestMethod]
+    public void Create_ValidEmail_DoesNotThrow()
+    {
+        var registration = Registration.Create(Guid.NewGuid(), "テスト", "test@example.com", RegistrationStatus.Confirmed);
+        Assert.IsNotNull(registration);
+    }
+
+    [TestMethod]
+    public void Create_CancelledStatus_ThrowsArgumentException()
+    {
+        Assert.ThrowsException<ArgumentException>(
+            () => Registration.Create(Guid.NewGuid(), "テスト", "test@example.com", RegistrationStatus.Cancelled));
+    }
+
+    [TestMethod]
     public void NormalizeEmail_TrimsAndLowercases()
     {
         Assert.AreEqual("test@example.com", Registration.NormalizeEmail(" Test@EXAMPLE.COM "));

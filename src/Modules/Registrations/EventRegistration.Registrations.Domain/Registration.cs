@@ -24,6 +24,18 @@ public class Registration
         ArgumentException.ThrowIfNullOrWhiteSpace(participantName);
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
 
+        if (status != RegistrationStatus.Confirmed && status != RegistrationStatus.WaitListed)
+        {
+            throw new ArgumentException(
+                "生成時のステータスは Confirmed または WaitListed のみ指定できます。",
+                nameof(status));
+        }
+
+        if (!IsValidEmail(email))
+        {
+            throw new ArgumentException("メールアドレスの形式が正しくありません。", nameof(email));
+        }
+
         return new Registration
         {
             Id = Guid.NewGuid(),
@@ -67,4 +79,18 @@ public class Registration
     /// </summary>
     public static string NormalizeEmail(string email) =>
         email.Trim().ToLowerInvariant();
+
+    private static bool IsValidEmail(string email)
+    {
+        var trimmed = email.Trim();
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(trimmed);
+            return addr.Address == trimmed;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }
