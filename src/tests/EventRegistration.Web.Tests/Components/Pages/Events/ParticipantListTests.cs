@@ -1,6 +1,7 @@
 using EventRegistration.Registrations.Application.Repositories;
 using EventRegistration.Registrations.Application.UseCases;
 using EventRegistration.Registrations.Domain;
+using EventRegistration.SharedKernel.Application.Events;
 using EventRegistration.Web.Components.Pages.Events;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
@@ -20,6 +21,8 @@ public sealed class ParticipantListTests : BunitContext
         _mockRegRepo = Substitute.For<IRegistrationRepository>();
         Services.AddSingleton(_mockRegRepo);
         Services.AddTransient<GetRegistrationsByEventUseCase>();
+        var mockDispatcher = Substitute.For<IDomainEventDispatcher>();
+        Services.AddSingleton(mockDispatcher);
         Services.AddTransient<CancelRegistrationUseCase>();
         Services.AddMudServices();
         JSInterop.Mode = JSRuntimeMode.Loose;
