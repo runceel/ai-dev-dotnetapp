@@ -5,8 +5,10 @@ using EventRegistration.Registrations.Application.Services;
 using EventRegistration.Registrations.Application.UseCases;
 using EventRegistration.Registrations.Domain;
 using EventRegistration.Registrations.Infrastructure.Persistence;
+using EventRegistration.SharedKernel.Infrastructure.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace EventRegistration.Web.Tests.Integration;
 
@@ -37,6 +39,10 @@ public sealed class RegistrationIntegrationTests
         services.AddScoped<RegisterParticipantUseCase>();
         services.AddScoped<CancelRegistrationUseCase>();
         services.AddScoped<GetRegistrationsByEventUseCase>();
+
+        // ドメインイベントディスパッチャ（購読ハンドラは未登録 = AC-04 振る舞い検証）
+        services.AddLogging();
+        services.AddSharedKernelDomainEvents();
 
         _provider = services.BuildServiceProvider();
         _scope = _provider.CreateScope();

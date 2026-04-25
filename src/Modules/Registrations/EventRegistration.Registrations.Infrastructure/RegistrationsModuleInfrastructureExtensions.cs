@@ -1,6 +1,7 @@
 using EventRegistration.Registrations.Application.Repositories;
 using EventRegistration.Registrations.Application.UseCases;
 using EventRegistration.Registrations.Infrastructure.Persistence;
+using EventRegistration.SharedKernel.Infrastructure.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,6 +24,10 @@ public static class RegistrationsModuleInfrastructureExtensions
         services.AddScoped<RegisterParticipantUseCase>();
         services.AddScoped<CancelRegistrationUseCase>();
         services.AddScoped<GetRegistrationsByEventUseCase>();
+
+        // ユースケースは IDomainEventDispatcher を要求するため、
+        // 購読モジュール (Notifications 等) が未登録でも解決できるよう既定実装を確保する (AC-04)。
+        services.AddSharedKernelDomainEvents();
 
         return services;
     }

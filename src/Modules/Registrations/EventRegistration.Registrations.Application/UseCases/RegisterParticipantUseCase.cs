@@ -1,6 +1,7 @@
 using EventRegistration.Registrations.Application.Repositories;
 using EventRegistration.Registrations.Application.Services;
 using EventRegistration.Registrations.Domain;
+using EventRegistration.SharedKernel.Application.Events;
 
 namespace EventRegistration.Registrations.Application.UseCases;
 
@@ -18,7 +19,8 @@ public sealed record RegisterResult(Registration Registration, bool IsSuccess, s
 /// </summary>
 public sealed class RegisterParticipantUseCase(
     IRegistrationRepository registrationRepository,
-    IEventCapacityChecker eventCapacityChecker)
+    IEventCapacityChecker eventCapacityChecker,
+    IDomainEventDispatcher domainEventDispatcher)
 {
     public async Task<RegisterResult> ExecuteAsync(
         Guid eventId,
@@ -52,6 +54,19 @@ public sealed class RegisterParticipantUseCase(
         var registration = Registration.Create(eventId, participantName, email, status);
         await registrationRepository.AddAsync(registration, cancellationToken);
         await registrationRepository.SaveChangesAsync(cancellationToken);
+
+        // 永続化が成功した場合のみ、参加確定の通知イベントを発行する。
+        if (registration.Status == RegistrationStatus.Confirmed)
+        {
+            var domainEvent = new ParticipantConfirmedEvent(
+                RegistrationId: registration.Id,
+                EventId: registration.EventId,
+                ParticipantName: registration.ParticipantName,
+                ParticipantEmail: registration.Email,
+                OccurredAt: DateTimeOffset.UtcNow);
+
+            await domainEventDispatcher.DispatchAsync(domainEvent, cancellationToken);
+        }
 
         return RegisterResult.Success(registration);
     }
