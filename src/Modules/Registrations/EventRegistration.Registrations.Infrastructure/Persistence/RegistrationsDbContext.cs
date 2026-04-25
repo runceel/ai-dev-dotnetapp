@@ -20,6 +20,9 @@ public sealed class RegistrationsDbContext(DbContextOptions<RegistrationsDbConte
             entity.Property(r => r.Email).IsRequired();
             entity.Property(r => r.Status).IsRequired();
             entity.Property(r => r.RegisteredAt).IsRequired();
+
+            // EventId + Email のユニーク制約（有効登録の重複防止）
+            entity.HasIndex(r => new { r.EventId, r.Email }).IsUnique();
         });
     }
 }

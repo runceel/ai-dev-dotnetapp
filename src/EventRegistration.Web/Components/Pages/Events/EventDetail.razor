@@ -46,7 +46,7 @@ else
         </MudItem>
         <MudItem xs="12" md="7">
             <MudText Typo="Typo.h5" Class="mb-2">参加者一覧</MudText>
-            <ParticipantList EventId="EventId" @ref="_participantList" />
+            <ParticipantList EventId="EventId" @ref="_participantList" OnCancelled="HandleCancelled" />
         </MudItem>
     </MudGrid>
 }
@@ -86,6 +86,12 @@ else
         {
             await _participantList.RefreshAsync();
         }
+        StateHasChanged();
+    }
+
+    private async Task HandleCancelled()
+    {
+        await LoadDataAsync();
         StateHasChanged();
     }
 }

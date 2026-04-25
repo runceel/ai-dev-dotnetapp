@@ -15,7 +15,7 @@ public static class RegistrationsNavigationExtensions
     {
         services.AddSingleton<INavigationItem>(new NavigationItem(
             Title: "参加登録",
-            Href: "/", // プレースホルダー (将来 /registrations 等に差し替え)
+            Href: "/events",
             Icon: "HowToReg",
             Group: "参加者",
             Order: 200,

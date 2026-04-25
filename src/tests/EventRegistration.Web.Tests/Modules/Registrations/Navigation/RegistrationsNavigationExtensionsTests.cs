@@ -28,6 +28,7 @@ public sealed class RegistrationsNavigationExtensionsTests
         var item = provider.GetServices<INavigationItem>().Single();
 
         Assert.AreEqual("参加登録", item.Title);
+        Assert.AreEqual("/events", item.Href);
         Assert.AreEqual("HowToReg", item.Icon);
         Assert.AreEqual("参加者", item.Group);
         Assert.AreEqual(200, item.Order);
