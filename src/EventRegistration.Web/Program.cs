@@ -1,5 +1,6 @@
 using EventRegistration.Events.Application.Navigation;
 using EventRegistration.Events.Infrastructure;
+using EventRegistration.Notifications.Infrastructure;
 using EventRegistration.Registrations.Application.Navigation;
 using EventRegistration.Registrations.Application.Services;
 using EventRegistration.Registrations.Infrastructure;
@@ -21,6 +22,7 @@ builder.Services.AddRegistrationsModuleNavigation();
 // 各モジュールの Infrastructure サービスを登録
 builder.Services.AddEventsModuleInfrastructure();
 builder.Services.AddRegistrationsModuleInfrastructure();
+builder.Services.AddNotificationsModule();
 
 // モジュール間アダプターを登録
 builder.Services.AddScoped<IEventCapacityChecker, EventCapacityCheckerAdapter>();

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventRegistration.Notifications.Domain\EventRegistration.Notifications.Domain.csproj" />
+    <ProjectReference Include="..\..\SharedKernel\EventRegistration.SharedKernel.Application\EventRegistration.SharedKernel.Application.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

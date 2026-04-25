@@ -6,6 +6,7 @@
     <ProjectReference Include="..\Modules\Events\EventRegistration.Events.Infrastructure\EventRegistration.Events.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\Registrations\EventRegistration.Registrations.Application\EventRegistration.Registrations.Application.csproj" />
     <ProjectReference Include="..\Modules\Registrations\EventRegistration.Registrations.Infrastructure\EventRegistration.Registrations.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Notifications\EventRegistration.Notifications.Infrastructure\EventRegistration.Notifications.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
