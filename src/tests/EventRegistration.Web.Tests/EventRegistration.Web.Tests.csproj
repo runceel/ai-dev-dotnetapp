@@ -19,12 +19,16 @@
   <ItemGroup>
     <ProjectReference Include="..\..\EventRegistration.Web\EventRegistration.Web.csproj" />
     <ProjectReference Include="..\..\Modules\SharedKernel\EventRegistration.SharedKernel.Application\EventRegistration.SharedKernel.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\SharedKernel\EventRegistration.SharedKernel.Infrastructure\EventRegistration.SharedKernel.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Events\EventRegistration.Events.Domain\EventRegistration.Events.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\Events\EventRegistration.Events.Application\EventRegistration.Events.Application.csproj" />
     <ProjectReference Include="..\..\Modules\Events\EventRegistration.Events.Infrastructure\EventRegistration.Events.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Registrations\EventRegistration.Registrations.Domain\EventRegistration.Registrations.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\Registrations\EventRegistration.Registrations.Application\EventRegistration.Registrations.Application.csproj" />
     <ProjectReference Include="..\..\Modules\Registrations\EventRegistration.Registrations.Infrastructure\EventRegistration.Registrations.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Notifications\EventRegistration.Notifications.Domain\EventRegistration.Notifications.Domain.csproj" />
+    <ProjectReference Include="..\..\Modules\Notifications\EventRegistration.Notifications.Application\EventRegistration.Notifications.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Notifications\EventRegistration.Notifications.Infrastructure\EventRegistration.Notifications.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
