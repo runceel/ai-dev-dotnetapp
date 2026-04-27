@@ -96,6 +96,23 @@ dotnet run --project src/EventRegistration.AppHost
 
 停止は `Ctrl+C`。
 
+### デモ用シードデータ
+
+Development 環境では起動時に `EventRegistration.Web/DemoData/` 配下のシーダーが自動で
+サンプルイベントと参加者データを投入する（既存データがある場合は何もしない）。
+
+`appsettings.Development.json` の `DemoData:Enabled` で ON/OFF を切り替えられる。
+
+```jsonc
+// 既定 (Development)
+"DemoData": { "Enabled": true }
+```
+
+| 環境 | 既定値 | 備考 |
+|------|--------|------|
+| Development | `true` | `appsettings.Development.json` で明示 ON |
+| その他（Production 等）| `false` | `DemoData:Enabled=true` を明示すれば有効化可能 |
+
 ---
 
 ## プロジェクト構成
