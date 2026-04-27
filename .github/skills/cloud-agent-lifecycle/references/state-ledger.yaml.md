@@ -30,6 +30,7 @@ artifacts:
   design: ".github/lifecycle/issue-42/design.md"
   implementation_plan: ".github/lifecycle/issue-42/implementation-plan.md"
   pull_request: ".github/lifecycle/issue-42/pull-request.md"
+  e2e_report: ".github/lifecycle/issue-42/e2e-report.md"
   log: ".github/lifecycle/issue-42/log.md"
 phase: 1
 step: "1.2"
@@ -63,7 +64,7 @@ updated_at: "2026-04-27T10:30:00Z"
 | `issue` | いいえ | 関連 Issue 番号。未作成の場合は空 |
 | `pr` | いいえ | 関連 PR 番号。Cloud Agent が取得できない場合は空 |
 | `branch` | いいえ | 作業ブランチ名 |
-| `artifacts` | はい | 仕様、設計、計画、ログなどのファイルパス |
+| `artifacts` | はい | 仕様、設計、計画、E2E レポート、ログなどのファイルパス |
 | `phase` | はい | 現在フェーズ |
 | `step` | はい | 現在ステップ |
 | `status` | はい | `ACTIVE` / `WAITING_HUMAN` / `BLOCKED` / `ENV_FAILED` / `COMPLETED` |
