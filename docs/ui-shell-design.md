@@ -108,7 +108,6 @@ ai-dev-dotnetapp/
 
 ```csharp
 using EventRegistration.Events.Application.Navigation;
-using EventRegistration.Registrations.Application.Navigation;
 using EventRegistration.Web.Components;
 using MudBlazor.Services;
 
@@ -121,7 +120,6 @@ builder.Services.AddMudServices();
 
 // 各モジュールが提供するナビゲーション項目を登録
 builder.Services.AddEventsModuleNavigation();
-builder.Services.AddRegistrationsModuleNavigation();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -309,22 +307,18 @@ public static class EventsNavigationExtensions
 // EventRegistration.Registrations.Application
 public static class RegistrationsNavigationExtensions
 {
+    // Registrations モジュールは独立したページ（/registrations 等）を持たない。
+    // 参加登録機能はイベント詳細画面（/events/{EventId}）内で提供されるため、
+    // 独立したサイドメニュー項目は登録しない。
+    // 将来 /registrations 専用ページを追加した場合は、このメソッドで項目を登録する。
     public static IServiceCollection AddRegistrationsModuleNavigation(this IServiceCollection services)
-    {
-        services.AddSingleton<INavigationItem>(new NavigationItem(
-            Title: "参加登録",
-            Href: "/events",
-            Icon: "HowToReg",
-            Group: "参加者",
-            Order: 200,
-            Match: NavigationMatch.Prefix));
-        return services;
-    }
+        => services;
 }
 ```
 
-- 各モジュールは `services.AddSingleton<INavigationItem>(new NavigationItem(...))` で **1 件以上の項目を Singleton 登録**する（GUD-002 / AC-002 / AC-008）。
-- `Events` / `Registrations` モジュールはいずれも `Href = "/events"` を指す（Registrations モジュールは独立した一覧ページを持たず、イベント詳細画面内のコンポーネントとして提供されるため、現状はイベント一覧へ誘導する）。
+- 各モジュールは必要に応じて `services.AddSingleton<INavigationItem>(new NavigationItem(...))` で項目を Singleton 登録する（GUD-002 / AC-002 / AC-008）。
+- `Registrations` モジュールは独立したページを持たず、参加登録機能はイベント詳細画面（`/events/{EventId}`）内のコンポーネントとして提供される。サイドメニューに `/events` を指す項目を重複して表示しないため、独立したナビゲーション項目は登録しない（REQ-001 / REQ-003）。
+- 将来 `/registrations` 専用ページを追加する場合は、`AddRegistrationsModuleNavigation()` で項目を登録し、`Program.cs` から呼び出す（GUD-002）。
 - ライフタイム選定理由: ナビゲーション項目は **不変な静的メタデータ**であり、Singleton が最適（NFR-002）。
 
 ### 4.3 Shell 側の解決

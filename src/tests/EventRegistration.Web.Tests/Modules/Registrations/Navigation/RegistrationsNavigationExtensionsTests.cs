@@ -8,44 +8,14 @@ namespace EventRegistration.Web.Tests.Modules.Registrations.Navigation;
 public sealed class RegistrationsNavigationExtensionsTests
 {
     [TestMethod]
-    public void AddRegistrationsModuleNavigation_RegistersSingletonINavigationItem()
+    public void AddRegistrationsModuleNavigation_DoesNotRegisterINavigationItem()
     {
         var services = new ServiceCollection();
 
         services.AddRegistrationsModuleNavigation();
 
-        var descriptor = services.Single(d => d.ServiceType == typeof(INavigationItem));
-        Assert.AreEqual(ServiceLifetime.Singleton, descriptor.Lifetime);
-    }
-
-    [TestMethod]
-    public void AddRegistrationsModuleNavigation_ResolvedItem_HasExpectedValues()
-    {
-        var services = new ServiceCollection();
-        services.AddRegistrationsModuleNavigation();
-        var provider = services.BuildServiceProvider();
-
-        var item = provider.GetServices<INavigationItem>().Single();
-
-        Assert.AreEqual("参加登録", item.Title);
-        Assert.AreEqual("/events", item.Href);
-        Assert.AreEqual("HowToReg", item.Icon);
-        Assert.AreEqual("参加者", item.Group);
-        Assert.AreEqual(200, item.Order);
-        Assert.AreEqual(NavigationMatch.Prefix, item.Match);
-    }
-
-    [TestMethod]
-    public void AddRegistrationsModuleNavigation_ResolveTwice_ReturnsSameInstance()
-    {
-        var services = new ServiceCollection();
-        services.AddRegistrationsModuleNavigation();
-        var provider = services.BuildServiceProvider();
-
-        var first = provider.GetServices<INavigationItem>().Single();
-        var second = provider.GetServices<INavigationItem>().Single();
-
-        Assert.AreSame(first, second);
+        var descriptors = services.Where(d => d.ServiceType == typeof(INavigationItem)).ToList();
+        Assert.AreEqual(0, descriptors.Count);
     }
 
     [TestMethod]
@@ -59,7 +29,7 @@ public sealed class RegistrationsNavigationExtensionsTests
     }
 
     [TestMethod]
-    public void AddBothModules_BothItemsRegistered()
+    public void AddBothModules_OnlyEventsItemRegistered()
     {
         var services = new ServiceCollection();
         services.AddRegistrationsModuleNavigation();
@@ -68,9 +38,9 @@ public sealed class RegistrationsNavigationExtensionsTests
         var provider = services.BuildServiceProvider();
         var items = provider.GetServices<INavigationItem>().ToList();
 
-        Assert.AreEqual(2, items.Count);
-        Assert.IsTrue(items.Any(i => i.Title == "参加登録"));
+        Assert.AreEqual(1, items.Count);
         Assert.IsTrue(items.Any(i => i.Title == "イベント管理"));
+        Assert.IsFalse(items.Any(i => i.Title == "参加登録"));
     }
 }
 
