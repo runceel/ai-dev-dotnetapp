@@ -48,7 +48,10 @@
 | スキル | 用途 |
 |--------|------|
 | `csharp-mstest` | MSTest によるユニットテストの作成 |
-| `playwright-cli` | ブラウザを使った E2E テストの自動化 |
+| Playwright MCP server / `playwright-cli` | ブラウザを使った E2E テストの自動化。Playwright MCP server が提供されている場合は MCP を優先し、未提供時のみ `playwright-cli` にフォールバックする |
+
+- E2E テストやブラウザ操作では、利用可能なツール一覧に Playwright MCP server 由来のツールがある場合、`playwright-cli` より MCP ツールを優先する
+- Playwright MCP server が未提供、または MCP ツールでは必要な操作を実行できない場合のみ、`playwright-cli` / `e2e-test` スキルの CLI 手順にフォールバックする
 
 ---
 

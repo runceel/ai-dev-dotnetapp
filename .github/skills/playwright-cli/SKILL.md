@@ -1,10 +1,15 @@
 ---
 name: playwright-cli
-description: Automates browser interactions for web testing, form filling, screenshots, and data extraction. Use when the user needs to navigate websites, interact with web pages, fill forms, take screenshots, test web applications, or extract information from web pages.
+description: Fallback browser automation via playwright-cli for web testing, form filling, screenshots, and data extraction. Prefer Playwright MCP server tools when they are available; use this CLI only when MCP tools are not provided or cannot perform the required operation.
 allowed-tools: Bash(playwright-cli:*)
 ---
 
 # Browser Automation with playwright-cli
+
+## Tool priority
+
+If Playwright MCP server tools are available in the current environment, use those MCP tools instead of this CLI skill for browser automation.
+Use `playwright-cli` only when Playwright MCP server is not provided, is unavailable, or lacks a required operation. When falling back to `playwright-cli`, briefly record the reason in the result.
 
 ## Quick start
 

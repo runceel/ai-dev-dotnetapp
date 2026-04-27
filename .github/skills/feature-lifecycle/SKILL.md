@@ -88,7 +88,7 @@ Phase 3 に進むためには、以下が設計・計画に含まれているこ
 | 3.4.9 | Orchestrator | PR を Ready for Review に変更 |
 | 3.5 | Reviewer | コードレビュー（コード + docs 更新）→ APPROVE / REQUEST CHANGES |
 | 3.6 | Developer / Documentation | REQUEST CHANGES の場合、指摘を反映して 3.5 へ戻る |
-| 3.7 | Tester | E2E テスト実行 → PASS / FAIL |
+| 3.7 | Tester | E2E テスト実行（Playwright MCP server 優先、未提供時のみ `playwright-cli`）→ PASS / FAIL |
 | 3.8 | Developer | FAIL の場合、バグ修正して 3.7 へ戻る |
 | 3.9 | Architect | 完成判断（docs 最新化も判定基準に含む）→ COMPLETE / INCOMPLETE |
 | 3.10 | Developer / Documentation | INCOMPLETE の場合、改善して 3.5 へ戻る |
