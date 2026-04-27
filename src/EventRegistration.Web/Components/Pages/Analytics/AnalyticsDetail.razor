@@ -1,0 +1,129 @@
+@page "/analytics/{EventId:guid}"
+
+<PageTitle>統計レポート — 詳細</PageTitle>
+
+<MudButton Variant="Variant.Text" Color="Color.Primary" Href="/analytics" StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-2">
+    一覧へ戻る
+</MudButton>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_event is null)
+{
+    <MudAlert Severity="Severity.Warning">指定されたイベントが見つかりません。</MudAlert>
+}
+else
+{
+    <MudText Typo="Typo.h4" Class="mb-2">@_event.Name</MudText>
+    <MudText Typo="Typo.subtitle2" Class="mb-4 mud-text-secondary">
+        定員 @_event.Capacity 名 / 開催日 @_event.ScheduledAt.LocalDateTime.ToString("yyyy/MM/dd HH:mm")
+    </MudText>
+
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">登録総数</MudText>
+                <MudText Typo="Typo.h4">@_statistics!.TotalRegistrations</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">参加確定（最終）</MudText>
+                <MudText Typo="Typo.h4">@_statistics.FinalConfirmedCount</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">参加率</MudText>
+                <MudText Typo="Typo.h4">@FormatPercent(_statistics.ParticipationRate)</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">キャンセル率</MudText>
+                <MudText Typo="Typo.h4">@FormatPercent(_statistics.CancellationRate)</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <MudText Typo="Typo.h6" Class="mt-6 mb-2">アクティビティ内訳</MudText>
+    <MudSimpleTable Dense="true" Style="max-width:520px">
+        <tbody>
+            <tr>
+                <td>新規 Confirmed</td>
+                <td style="text-align:right">@_statistics.ConfirmedCount</td>
+            </tr>
+            <tr>
+                <td>新規 WaitListed（キャンセル待ち発生回数）</td>
+                <td style="text-align:right">@_statistics.WaitListedCount</td>
+            </tr>
+            <tr>
+                <td>繰り上がり（PromotedFromWaitList）</td>
+                <td style="text-align:right">@_statistics.PromotedCount</td>
+            </tr>
+            <tr>
+                <td>キャンセル</td>
+                <td style="text-align:right">@_statistics.CancelledCount</td>
+            </tr>
+        </tbody>
+    </MudSimpleTable>
+
+    <MudText Typo="Typo.h6" Class="mt-6 mb-2">直近 14 日間の推移</MudText>
+    @if (_chartSeries.Count == 0 || _chartLabels.Length == 0)
+    {
+        <MudText>データがありません。</MudText>
+    }
+    else
+    {
+        <MudChart ChartType="ChartType.Bar"
+                  ChartSeries="_chartSeries"
+                  XAxisLabels="_chartLabels"
+                  Width="100%"
+                  Height="320px" />
+    }
+}
+
+@code {
+    [Parameter] public Guid EventId { get; set; }
+
+    [Inject] private GetEventByIdUseCase GetEventByIdUseCase { get; set; } = default!;
+    [Inject] private GetEventStatisticsUseCase GetEventStatisticsUseCase { get; set; } = default!;
+    [Inject] private GetDailyStatisticsUseCase GetDailyStatisticsUseCase { get; set; } = default!;
+
+    private bool _loading = true;
+    private Event? _event;
+    private EventStatistics? _statistics;
+    private List<ChartSeries<double>> _chartSeries = [];
+    private string[] _chartLabels = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _event = await GetEventByIdUseCase.ExecuteAsync(EventId);
+
+        if (_event is not null)
+        {
+            _statistics = await GetEventStatisticsUseCase.ExecuteAsync(EventId);
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var from = today.AddDays(-13);
+            var daily = await GetDailyStatisticsUseCase.ExecuteAsync(EventId, from, today);
+
+            _chartLabels = daily.Select(d => d.Date.ToString("MM/dd")).ToArray();
+            _chartSeries =
+            [
+                new ChartSeries<double> { Name = "Confirmed", Data = daily.Select(d => (double)d.ConfirmedCount).ToArray() },
+                new ChartSeries<double> { Name = "WaitListed", Data = daily.Select(d => (double)d.WaitListedCount).ToArray() },
+                new ChartSeries<double> { Name = "Cancelled", Data = daily.Select(d => (double)d.CancelledCount).ToArray() },
+                new ChartSeries<double> { Name = "Promoted", Data = daily.Select(d => (double)d.PromotedCount).ToArray() },
+            ];
+        }
+
+        _loading = false;
+    }
+
+    private static string FormatPercent(double value)
+        => (value * 100d).ToString("0.0") + "%";
+}

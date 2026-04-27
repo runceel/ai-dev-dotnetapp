@@ -71,7 +71,7 @@ public sealed class RegistrationsDomainEventPublicationTests
     }
 
     [TestMethod]
-    public async Task Register_WhenWaitListed_DoesNotPublishEvent()
+    public async Task Register_WhenWaitListed_PublishesParticipantWaitListedEvent()
     {
         // 定員 2 を埋める（イベント 2 件発行される）
         await _registerUseCase.ExecuteAsync(_eventId, "太郎", "taro@example.com");
@@ -83,11 +83,17 @@ public sealed class RegistrationsDomainEventPublicationTests
 
         Assert.IsTrue(result.IsSuccess);
         Assert.AreEqual(RegistrationStatus.WaitListed, result.Registration.Status);
-        Assert.AreEqual(0, _dispatcher.Dispatched.Count);
+        Assert.AreEqual(1, _dispatcher.Dispatched.Count);
+        var ev = _dispatcher.Dispatched[0] as ParticipantWaitListedEvent;
+        Assert.IsNotNull(ev);
+        Assert.AreEqual(result.Registration.Id, ev!.RegistrationId);
+        Assert.AreEqual(_eventId, ev.EventId);
+        Assert.AreEqual("次郎", ev.ParticipantName);
+        Assert.AreEqual("jiro@example.com", ev.ParticipantEmail);
     }
 
     [TestMethod]
-    public async Task Cancel_PromotesWaitListed_PublishesPromotionEvent()
+    public async Task Cancel_PromotesWaitListed_PublishesCancelledAndPromotionEvents()
     {
         var r1 = await _registerUseCase.ExecuteAsync(_eventId, "太郎", "taro@example.com");
         await _registerUseCase.ExecuteAsync(_eventId, "花子", "hanako@example.com");
@@ -99,16 +105,24 @@ public sealed class RegistrationsDomainEventPublicationTests
 
         Assert.IsTrue(cancelResult.IsSuccess);
         Assert.IsNotNull(cancelResult.PromotedRegistration);
-        Assert.AreEqual(1, _dispatcher.Dispatched.Count);
-        var ev = _dispatcher.Dispatched[0] as ParticipantPromotedFromWaitListEvent;
-        Assert.IsNotNull(ev);
-        Assert.AreEqual(waitlisted.Registration.Id, ev!.RegistrationId);
-        Assert.AreEqual("次郎", ev.ParticipantName);
-        Assert.AreEqual("jiro@example.com", ev.ParticipantEmail);
+        // 1) RegistrationCancelledEvent (priorStatus = Confirmed)
+        // 2) ParticipantPromotedFromWaitListEvent
+        Assert.AreEqual(2, _dispatcher.Dispatched.Count);
+
+        var cancelledEv = _dispatcher.Dispatched[0] as RegistrationCancelledEvent;
+        Assert.IsNotNull(cancelledEv);
+        Assert.AreEqual(r1.Registration.Id, cancelledEv!.RegistrationId);
+        Assert.AreEqual(RegistrationCancelledPriorStatus.Confirmed, cancelledEv.PriorStatus);
+
+        var promotedEv = _dispatcher.Dispatched[1] as ParticipantPromotedFromWaitListEvent;
+        Assert.IsNotNull(promotedEv);
+        Assert.AreEqual(waitlisted.Registration.Id, promotedEv!.RegistrationId);
+        Assert.AreEqual("次郎", promotedEv.ParticipantName);
+        Assert.AreEqual("jiro@example.com", promotedEv.ParticipantEmail);
     }
 
     [TestMethod]
-    public async Task Cancel_NoWaitListed_DoesNotPublishPromotionEvent()
+    public async Task Cancel_NoWaitListed_PublishesOnlyCancelledEvent()
     {
         var r1 = await _registerUseCase.ExecuteAsync(_eventId, "太郎", "taro@example.com");
         _dispatcher.Dispatched.Clear();
@@ -117,11 +131,14 @@ public sealed class RegistrationsDomainEventPublicationTests
 
         Assert.IsTrue(cancelResult.IsSuccess);
         Assert.IsNull(cancelResult.PromotedRegistration);
-        Assert.AreEqual(0, _dispatcher.Dispatched.Count);
+        Assert.AreEqual(1, _dispatcher.Dispatched.Count);
+        var ev = _dispatcher.Dispatched[0] as RegistrationCancelledEvent;
+        Assert.IsNotNull(ev);
+        Assert.AreEqual(RegistrationCancelledPriorStatus.Confirmed, ev!.PriorStatus);
     }
 
     [TestMethod]
-    public async Task Cancel_OfWaitListed_DoesNotPublishPromotionEvent()
+    public async Task Cancel_OfWaitListed_PublishesCancelledEventWithWaitListedPriorStatus()
     {
         await _registerUseCase.ExecuteAsync(_eventId, "太郎", "taro@example.com");
         await _registerUseCase.ExecuteAsync(_eventId, "花子", "hanako@example.com");
@@ -133,7 +150,11 @@ public sealed class RegistrationsDomainEventPublicationTests
 
         Assert.IsTrue(cancelResult.IsSuccess);
         Assert.IsNull(cancelResult.PromotedRegistration);
-        Assert.AreEqual(0, _dispatcher.Dispatched.Count);
+        Assert.AreEqual(1, _dispatcher.Dispatched.Count);
+        var ev = _dispatcher.Dispatched[0] as RegistrationCancelledEvent;
+        Assert.IsNotNull(ev);
+        Assert.AreEqual(waitlisted.Registration.Id, ev!.RegistrationId);
+        Assert.AreEqual(RegistrationCancelledPriorStatus.WaitListed, ev.PriorStatus);
     }
 
     private sealed class RecordingDomainEventDispatcher : IDomainEventDispatcher

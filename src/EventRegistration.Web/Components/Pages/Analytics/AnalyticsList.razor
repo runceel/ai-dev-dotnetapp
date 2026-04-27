@@ -1,0 +1,75 @@
+@page "/analytics"
+
+<PageTitle>統計レポート</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">統計レポート</MudText>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_rows is null || _rows.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">集計対象のイベントがまだありません。イベントを作成し、参加登録/キャンセルを行うとここに統計が表示されます。</MudAlert>
+}
+else
+{
+    <MudTable Items="_rows" Hover="true" Bordered="false" Striped="true" Dense="false">
+        <HeaderContent>
+            <MudTh>イベント名</MudTh>
+            <MudTh Style="text-align:right">登録総数</MudTh>
+            <MudTh Style="text-align:right">確定者数（最終）</MudTh>
+            <MudTh Style="text-align:right">キャンセル待ち発生</MudTh>
+            <MudTh Style="text-align:right">繰り上がり</MudTh>
+            <MudTh Style="text-align:right">キャンセル</MudTh>
+            <MudTh Style="text-align:right">参加率</MudTh>
+            <MudTh Style="text-align:right">キャンセル率</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="イベント名">@context.EventName</MudTd>
+            <MudTd DataLabel="登録総数" Style="text-align:right">@context.Statistics.TotalRegistrations</MudTd>
+            <MudTd DataLabel="確定者数（最終）" Style="text-align:right">@context.Statistics.FinalConfirmedCount</MudTd>
+            <MudTd DataLabel="キャンセル待ち発生" Style="text-align:right">@context.Statistics.WaitListedCount</MudTd>
+            <MudTd DataLabel="繰り上がり" Style="text-align:right">@context.Statistics.PromotedCount</MudTd>
+            <MudTd DataLabel="キャンセル" Style="text-align:right">@context.Statistics.CancelledCount</MudTd>
+            <MudTd DataLabel="参加率" Style="text-align:right">@FormatPercent(context.Statistics.ParticipationRate)</MudTd>
+            <MudTd DataLabel="キャンセル率" Style="text-align:right">@FormatPercent(context.Statistics.CancellationRate)</MudTd>
+            <MudTd>
+                <MudButton Variant="Variant.Text"
+                           Color="Color.Primary"
+                           Href="@($"/analytics/{context.EventId}")">
+                    詳細
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    [Inject] private GetAllEventsUseCase GetAllEventsUseCase { get; set; } = default!;
+    [Inject] private GetEventStatisticsUseCase GetEventStatisticsUseCase { get; set; } = default!;
+
+    private bool _loading = true;
+    private List<Row>? _rows;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var events = await GetAllEventsUseCase.ExecuteAsync();
+        var rows = new List<Row>(events.Count);
+        foreach (var ev in events)
+        {
+            var stats = await GetEventStatisticsUseCase.ExecuteAsync(ev.Id);
+            rows.Add(new Row(ev.Id, ev.Name, stats));
+        }
+
+        // 登録総数が多い順
+        _rows = rows.OrderByDescending(r => r.Statistics.TotalRegistrations).ToList();
+        _loading = false;
+    }
+
+    private static string FormatPercent(double value)
+        => (value * 100d).ToString("0.0") + "%";
+
+    private sealed record Row(Guid EventId, string EventName, EventStatistics Statistics);
+}
