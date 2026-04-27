@@ -32,7 +32,7 @@ public sealed class EventsDemoDataSeederTests
         await seeder.SeedAsync(CancellationToken.None);
 
         var events = await repo.GetAllAsync();
-        Assert.IsTrue(events.Count >= 3, $"Expected at least 3 seeded events, got {events.Count}.");
+        Assert.IsTrue(events.Count >= 7, $"Expected at least 7 seeded events, got {events.Count}.");
     }
 
     [TestMethod]

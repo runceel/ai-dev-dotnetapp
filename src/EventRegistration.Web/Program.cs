@@ -47,6 +47,7 @@ builder.Services
     });
 builder.Services.AddScoped<IDemoDataSeeder, EventsDemoDataSeeder>();
 builder.Services.AddScoped<IDemoDataSeeder, RegistrationsDemoDataSeeder>();
+builder.Services.AddScoped<IDemoDataSeeder, AnalyticsDemoDataSeeder>();
 builder.Services.AddHostedService<DemoDataHostedService>();
 
 // Add services to the container.

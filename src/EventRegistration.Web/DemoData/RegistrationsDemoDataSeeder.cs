@@ -25,6 +25,18 @@ public sealed class RegistrationsDemoDataSeeder(
         ("伊藤 五郎", "goro.ito@example.com"),
         ("渡辺 六子", "rokuko.watanabe@example.com"),
         ("中村 七子", "nanako.nakamura@example.com"),
+        ("小林 八郎", "hachiro.kobayashi@example.com"),
+        ("加藤 九子", "kuko.kato@example.com"),
+        ("吉田 十吾", "jugo.yoshida@example.com"),
+        ("松本 あゆみ", "ayumi.matsumoto@example.com"),
+        ("井上 大輔", "daisuke.inoue@example.com"),
+        ("木村 さくら", "sakura.kimura@example.com"),
+        ("林 健太", "kenta.hayashi@example.com"),
+        ("清水 美咲", "misaki.shimizu@example.com"),
+        ("山本 翔太", "shota.yamamoto@example.com"),
+        ("森 真由美", "mayumi.mori@example.com"),
+        ("池田 拓海", "takumi.ikeda@example.com"),
+        ("橋本 陽菜", "hina.hashimoto@example.com"),
     ];
 
     public async Task SeedAsync(CancellationToken cancellationToken)
