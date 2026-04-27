@@ -91,7 +91,7 @@ Developer が下記の修正手順をそのまま実行し、完了後に Review
 ### Step 4: ビルド & テスト
 
 ```bash
-cd src && dotnet build {ProjectName}.slnx && dotnet test {ProjectName}.slnx
+dotnet build {ProjectName}.slnx && dotnet test --solution {ProjectName}.slnx
 ```
 
 ビルドまたはテストが失敗した場合は修正して再実行する（最大 **3 回**）。
@@ -144,7 +144,7 @@ Developer の修正完了後、Reviewer がコードレビューを行う。
 | 項目 | ルール |
 |------|--------|
 | ビルド成功 | `dotnet build {ProjectName}.slnx` が通ること |
-| テスト成功 | `dotnet test {ProjectName}.slnx` が通ること |
+| テスト成功 | `dotnet test --solution {ProjectName}.slnx` が通ること |
 | Conventional Commits | `fix(<scope>): ...` 形式でコミット |
 | 既存ブランチ | 新しいブランチは作成しない |
 | 既存 PR | 新しい PR は作成しない |

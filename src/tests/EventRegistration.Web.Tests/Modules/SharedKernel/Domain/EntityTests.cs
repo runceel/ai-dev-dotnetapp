@@ -40,9 +40,10 @@ public sealed class EntityTests
     public void Entity_ComparedWithSelf_IsEqual()
     {
         var entity = new TestEntity(Guid.NewGuid());
+        var sameEntity = entity;
 
-        Assert.IsTrue(entity.Equals(entity));
-        Assert.IsTrue(entity == entity);
+        Assert.IsTrue(entity.Equals(sameEntity));
+        Assert.IsTrue(entity == sameEntity);
     }
 
     [TestMethod]

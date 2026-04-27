@@ -115,9 +115,8 @@ Refs #15
 PR を作成する**前**に、必ずローカルでビルドとテストを実行して成功を確認してください。
 
 ```bash
-cd src
 dotnet build {ProjectName}.slnx
-dotnet test {ProjectName}.slnx
+dotnet test --solution {ProjectName}.slnx
 ```
 
 > **注意:** ビルドエラーやテスト失敗がある状態で PR を作成しないでください。
@@ -166,7 +165,7 @@ Closes #<issue番号>
 
 ## 確認事項
 - [ ] `dotnet build {ProjectName}.slnx` が成功する
-- [ ] `dotnet test {ProjectName}.slnx` が成功する
+- [ ] `dotnet test --solution {ProjectName}.slnx` が成功する
 - [ ] 新規・変更したビジネスロジックに単体テストがある（`csharp-mstest` スキル参照）
 - [ ] テストプロジェクトの配置が規約に従っている（`clean-architecture-guide` スキル参照）
 ```
@@ -242,7 +241,7 @@ git add .
 git commit -m "feat(<scope>): 変更内容の説明"
 
 # 3. ビルド確認
-cd src && dotnet build {ProjectName}.slnx && dotnet test {ProjectName}.slnx
+dotnet build {ProjectName}.slnx && dotnet test --solution {ProjectName}.slnx
 
 # 4. プッシュ & Draft PR 作成
 git push -u origin feature/<issue番号>-<説明>

@@ -41,7 +41,7 @@ public sealed class LoggingNotificationSenderTests
     {
         var sender = new LoggingNotificationSender(new RecordingLogger<LoggingNotificationSender>());
 
-        await Assert.ThrowsExceptionAsync<ArgumentNullException>(
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(
             () => sender.SendAsync(null!));
     }
 }

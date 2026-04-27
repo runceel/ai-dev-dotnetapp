@@ -480,7 +480,7 @@ public static class NavigationMatchExtensions
 
 ```bash
 dotnet build EventRegistration.slnx
-dotnet test EventRegistration.slnx
+dotnet test --solution EventRegistration.slnx
 ```
 
 ### 7.5 カバレッジ目標

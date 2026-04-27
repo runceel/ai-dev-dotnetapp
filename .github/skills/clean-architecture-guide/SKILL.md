@@ -525,7 +525,7 @@ public sealed class HealthCheckTests
 | **テストは独立** | テスト間で状態を共有しない。各テストが自己完結すること |
 | **リポジトリをモックする** | 単体テストでは DB に依存しない。Fake/Mock/Stub を使用 |
 | **実インフラで検証する** | インテグレーションテストでは Aspire が起動する実コンテナ（DB、キャッシュ等）を使用 |
-| **PR 前に全テスト通過** | `dotnet test {ProjectName}.slnx` が成功することを確認してから PR を作成（github-flow 参照） |
+| **PR 前に全テスト通過** | `dotnet test --solution {ProjectName}.slnx` が成功することを確認してから PR を作成（github-flow 参照） |
 
 ---
 
@@ -550,4 +550,4 @@ public sealed class HealthCheckTests
 - [ ] `aspire run` で正常に起動し、Aspire Dashboard でサービスが確認できるか
 - [ ] 単体テスト（`<ModuleName>.Application.Tests`）を作成したか
 - [ ] インテグレーションテスト（`AppHost.IntegrationTests`）にヘルスチェック等のテストを追加したか
-- [ ] `dotnet test {ProjectName}.slnx` が全件成功するか
+- [ ] `dotnet test --solution {ProjectName}.slnx` が全件成功するか

@@ -73,7 +73,7 @@ dotnet build EventRegistration.slnx
 ## テスト
 
 ```powershell
-dotnet test EventRegistration.slnx
+dotnet test --solution EventRegistration.slnx
 ```
 
 `src/tests/EventRegistration.Web.Tests` の bUnit ベースのコンポーネントテストおよび統合テストが実行される。
