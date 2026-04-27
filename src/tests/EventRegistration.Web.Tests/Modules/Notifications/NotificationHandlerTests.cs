@@ -38,7 +38,7 @@ public sealed class ParticipantConfirmedNotificationHandlerTests
     {
         var handler = new ParticipantConfirmedNotificationHandler(new RecordingNotificationSender());
 
-        await Assert.ThrowsExceptionAsync<ArgumentNullException>(
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(
             () => handler.HandleAsync(null!));
     }
 }

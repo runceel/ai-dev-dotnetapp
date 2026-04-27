@@ -49,14 +49,14 @@ public sealed class RegistrationTests
     [TestMethod]
     public void Create_NullParticipantName_ThrowsArgumentException()
     {
-        Assert.ThrowsException<ArgumentNullException>(
+        Assert.ThrowsExactly<ArgumentNullException>(
             () => Registration.Create(Guid.NewGuid(), null!, "test@example.com", RegistrationStatus.Confirmed));
     }
 
     [TestMethod]
     public void Create_NullEmail_ThrowsArgumentException()
     {
-        Assert.ThrowsException<ArgumentNullException>(
+        Assert.ThrowsExactly<ArgumentNullException>(
             () => Registration.Create(Guid.NewGuid(), "テスト", null!, RegistrationStatus.Confirmed));
     }
 
@@ -91,7 +91,7 @@ public sealed class RegistrationTests
             Guid.NewGuid(), "テスト", "test@example.com", RegistrationStatus.Confirmed);
         registration.Cancel();
 
-        Assert.ThrowsException<InvalidOperationException>(() => registration.Cancel());
+        Assert.ThrowsExactly<InvalidOperationException>(() => registration.Cancel());
     }
 
     [TestMethod]
@@ -111,13 +111,13 @@ public sealed class RegistrationTests
         var registration = Registration.Create(
             Guid.NewGuid(), "テスト", "test@example.com", RegistrationStatus.Confirmed);
 
-        Assert.ThrowsException<InvalidOperationException>(() => registration.Confirm());
+        Assert.ThrowsExactly<InvalidOperationException>(() => registration.Confirm());
     }
 
     [TestMethod]
     public void Create_InvalidEmailFormat_ThrowsArgumentException()
     {
-        Assert.ThrowsException<ArgumentException>(
+        Assert.ThrowsExactly<ArgumentException>(
             () => Registration.Create(Guid.NewGuid(), "テスト", "invalid-email", RegistrationStatus.Confirmed));
     }
 
@@ -131,7 +131,7 @@ public sealed class RegistrationTests
     [TestMethod]
     public void Create_CancelledStatus_ThrowsArgumentException()
     {
-        Assert.ThrowsException<ArgumentException>(
+        Assert.ThrowsExactly<ArgumentException>(
             () => Registration.Create(Guid.NewGuid(), "テスト", "test@example.com", RegistrationStatus.Cancelled));
     }
 

@@ -55,8 +55,8 @@ tools:
 ## ビルド・テストコマンド
 
 ```bash
-cd src && dotnet build {ProjectName}.slnx
-cd src && dotnet test {ProjectName}.slnx
+dotnet build EventRegistration.slnx
+dotnet test --solution EventRegistration.slnx
 ```
 
 ---

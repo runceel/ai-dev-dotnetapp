@@ -58,7 +58,7 @@ public sealed class GetDailyStatisticsUseCaseTests
         var repo = Substitute.For<IRegistrationActivityRepository>();
         var useCase = new GetDailyStatisticsUseCase(repo);
 
-        await Assert.ThrowsExceptionAsync<ArgumentException>(() =>
+        await Assert.ThrowsExactlyAsync<ArgumentException>(() =>
             useCase.ExecuteAsync(Guid.NewGuid(), new DateOnly(2026, 1, 5), new DateOnly(2026, 1, 1)));
     }
 }

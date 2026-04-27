@@ -20,28 +20,28 @@ public sealed class EventTests
     [TestMethod]
     public void Create_NullName_ThrowsArgumentException()
     {
-        Assert.ThrowsException<ArgumentNullException>(
+        Assert.ThrowsExactly<ArgumentNullException>(
             () => Event.Create(null!, null, DateTimeOffset.UtcNow, 10));
     }
 
     [TestMethod]
     public void Create_WhitespaceName_ThrowsArgumentException()
     {
-        Assert.ThrowsException<ArgumentException>(
+        Assert.ThrowsExactly<ArgumentException>(
             () => Event.Create("  ", null, DateTimeOffset.UtcNow, 10));
     }
 
     [TestMethod]
     public void Create_ZeroCapacity_ThrowsArgumentOutOfRangeException()
     {
-        Assert.ThrowsException<ArgumentOutOfRangeException>(
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(
             () => Event.Create("テスト", null, DateTimeOffset.UtcNow, 0));
     }
 
     [TestMethod]
     public void Create_NegativeCapacity_ThrowsArgumentOutOfRangeException()
     {
-        Assert.ThrowsException<ArgumentOutOfRangeException>(
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(
             () => Event.Create("テスト", null, DateTimeOffset.UtcNow, -1));
     }
 

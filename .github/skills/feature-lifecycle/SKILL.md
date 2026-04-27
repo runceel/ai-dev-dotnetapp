@@ -84,7 +84,7 @@ Phase 3 に進むためには、以下が設計・計画に含まれているこ
 |------|------|------|
 | 3.1 | Developer | feature ブランチ作成・Draft PR 作成（初期コミット付き） |
 | 3.2 | Developer | 実装・ユニットテスト |
-| 3.3 | Developer | ビルド確認（`cd src && dotnet build {ProjectName}.slnx`） |
+| 3.3 | Developer | ビルド確認（`dotnet build {ProjectName}.slnx`） |
 | 3.4 | Orchestrator | 実装完了を検知 |
 | 3.4.5 | Documentation | 実装差分を解析し、影響を受ける `docs/` / `README.md` / `docs/tests/` を更新し同 PR にコミット |
 | 3.4.9 | Orchestrator | PR を Ready for Review に変更 |
