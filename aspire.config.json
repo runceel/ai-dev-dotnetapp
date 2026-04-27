@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "src/EventRegistration.AppHost/EventRegistration.AppHost.csproj"
+  }
+}
