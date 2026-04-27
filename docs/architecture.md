@@ -151,6 +151,8 @@ EventRegistration.slnx
 | `SharedKernel` | 複数モジュールから利用される共通プリミティブを配置する **最下層モジュール**。他の業務モジュールに一切依存しない |
 | `Events` | イベント（開催情報）に関する Bounded Context（業務実装は Phase 2 以降） |
 | `Registrations` | 参加登録に関する Bounded Context（業務実装は Phase 2 以降） |
+| `Notifications` | 参加確定 / キャンセル待ち繰り上げの通知配信。`SharedKernel.Application.Events` のドメインイベントを購読し、他の業務モジュールへ直接参照しない |
+| `Analytics` | 統計・レポート（Issue [#22](https://github.com/runceel/ai-dev-dotnetapp/issues/22)）。CQRS の Read 側として、`SharedKernel.Application.Events` のドメインイベント（`ParticipantConfirmedEvent` / `ParticipantWaitListedEvent` / `RegistrationCancelledEvent` / `ParticipantPromotedFromWaitListEvent`）を購読し、自モジュール内 `AnalyticsDbContext` に `RegistrationActivity` の Read モデルを構築する。Events / Registrations / Notifications モジュールへ直接参照しない。UI は `/analytics` および `/analytics/{eventId:guid}` で MudBlazor の `MudChart` を用いて推移を可視化する |
 
 ---
 

@@ -55,6 +55,17 @@ public sealed class CancelRegistrationUseCase(
 
         await registrationRepository.SaveChangesAsync(cancellationToken);
 
+        // 永続化が成功した場合のみキャンセルイベントを発行する。
+        var cancelledEvent = new RegistrationCancelledEvent(
+            RegistrationId: registration.Id,
+            EventId: registration.EventId,
+            PriorStatus: wasConfirmed
+                ? RegistrationCancelledPriorStatus.Confirmed
+                : RegistrationCancelledPriorStatus.WaitListed,
+            OccurredAt: DateTimeOffset.UtcNow);
+
+        await domainEventDispatcher.DispatchAsync(cancelledEvent, cancellationToken);
+
         // 永続化が成功した場合のみ繰り上げ通知イベントを発行する。
         if (promoted is not null)
         {

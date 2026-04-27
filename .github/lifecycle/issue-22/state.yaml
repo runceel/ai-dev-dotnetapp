@@ -1,0 +1,30 @@
+work_id: "issue-22"
+feature: "Analytics（統計・レポート）モジュール追加"
+entry_mode: "cloud-draft"
+transport: "repo-files"
+issue: 22
+pr:
+branch: "copilot/add-analytics-module-again"
+artifacts:
+  spec: ".github/lifecycle/issue-22/spec.md"
+  design: ".github/lifecycle/issue-22/design.md"
+  implementation_plan: ".github/lifecycle/issue-22/implementation-plan.md"
+  pull_request: ".github/lifecycle/issue-22/pull-request.md"
+  log: ".github/lifecycle/issue-22/log.md"
+phase: 3
+step: "3.11"
+status: "WAITING_HUMAN"
+last_agent: "Developer"
+last_decision: "DONE"
+counters:
+  spec_review: 0
+  design_review: 0
+  build_fail: 0
+  code_review: 0
+  completion_cycle: 0
+  e2e_retry: 0
+  doc_update: 0
+outbox_status:
+  pending: 0
+  posted: 0
+updated_at: "2026-04-27T03:10:00Z"

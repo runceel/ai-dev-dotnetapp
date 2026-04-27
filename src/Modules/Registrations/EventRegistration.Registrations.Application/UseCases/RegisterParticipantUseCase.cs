@@ -55,10 +55,21 @@ public sealed class RegisterParticipantUseCase(
         await registrationRepository.AddAsync(registration, cancellationToken);
         await registrationRepository.SaveChangesAsync(cancellationToken);
 
-        // 永続化が成功した場合のみ、参加確定の通知イベントを発行する。
+        // 永続化が成功した場合のみ、登録ステータスに対応するドメインイベントを発行する。
         if (registration.Status == RegistrationStatus.Confirmed)
         {
             var domainEvent = new ParticipantConfirmedEvent(
+                RegistrationId: registration.Id,
+                EventId: registration.EventId,
+                ParticipantName: registration.ParticipantName,
+                ParticipantEmail: registration.Email,
+                OccurredAt: DateTimeOffset.UtcNow);
+
+            await domainEventDispatcher.DispatchAsync(domainEvent, cancellationToken);
+        }
+        else if (registration.Status == RegistrationStatus.WaitListed)
+        {
+            var domainEvent = new ParticipantWaitListedEvent(
                 RegistrationId: registration.Id,
                 EventId: registration.EventId,
                 ParticipantName: registration.ParticipantName,
