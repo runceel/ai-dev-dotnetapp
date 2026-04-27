@@ -1,3 +1,5 @@
+using EventRegistration.Analytics.Application.Navigation;
+using EventRegistration.Analytics.Infrastructure;
 using EventRegistration.Events.Application.Navigation;
 using EventRegistration.Events.Infrastructure;
 using EventRegistration.Notifications.Infrastructure;
@@ -18,11 +20,14 @@ builder.Services.AddMudServices();
 // 各モジュールが提供するナビゲーション項目を登録
 builder.Services.AddEventsModuleNavigation();
 builder.Services.AddRegistrationsModuleNavigation();
+builder.Services.AddAnalyticsModuleNavigation();
 
 // 各モジュールの Infrastructure サービスを登録
 builder.Services.AddEventsModuleInfrastructure();
 builder.Services.AddRegistrationsModuleInfrastructure();
 builder.Services.AddNotificationsModule();
+// Analytics は Events / Registrations の DbContext に依存するため後段で登録
+builder.Services.AddAnalyticsModuleInfrastructure();
 
 // モジュール間アダプターを登録
 builder.Services.AddScoped<IEventCapacityChecker, EventCapacityCheckerAdapter>();

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventRegistration.Analytics.Application\EventRegistration.Analytics.Application.csproj" />
+    <ProjectReference Include="..\EventRegistration.Analytics.Domain\EventRegistration.Analytics.Domain.csproj" />
+    <ProjectReference Include="..\..\Events\EventRegistration.Events.Infrastructure\EventRegistration.Events.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Registrations\EventRegistration.Registrations.Infrastructure\EventRegistration.Registrations.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

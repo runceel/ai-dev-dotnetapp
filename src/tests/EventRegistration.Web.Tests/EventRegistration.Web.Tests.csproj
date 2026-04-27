@@ -31,6 +31,9 @@
     <ProjectReference Include="..\..\Modules\Notifications\EventRegistration.Notifications.Domain\EventRegistration.Notifications.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\Notifications\EventRegistration.Notifications.Application\EventRegistration.Notifications.Application.csproj" />
     <ProjectReference Include="..\..\Modules\Notifications\EventRegistration.Notifications.Infrastructure\EventRegistration.Notifications.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Analytics\EventRegistration.Analytics.Domain\EventRegistration.Analytics.Domain.csproj" />
+    <ProjectReference Include="..\..\Modules\Analytics\EventRegistration.Analytics.Application\EventRegistration.Analytics.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Analytics\EventRegistration.Analytics.Infrastructure\EventRegistration.Analytics.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

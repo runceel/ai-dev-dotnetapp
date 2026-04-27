@@ -10,6 +10,11 @@
     <Project Path="src/EventRegistration.Web/EventRegistration.Web.csproj" />
   </Folder>
   <Folder Name="/Modules/" />
+  <Folder Name="/Modules/Analytics/">
+    <Project Path="src/Modules/Analytics/EventRegistration.Analytics.Application/EventRegistration.Analytics.Application.csproj" />
+    <Project Path="src/Modules/Analytics/EventRegistration.Analytics.Domain/EventRegistration.Analytics.Domain.csproj" />
+    <Project Path="src/Modules/Analytics/EventRegistration.Analytics.Infrastructure/EventRegistration.Analytics.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/Modules/Events/">
     <Project Path="src/Modules/Events/EventRegistration.Events.Application/EventRegistration.Events.Application.csproj" />
     <Project Path="src/Modules/Events/EventRegistration.Events.Domain/EventRegistration.Events.Domain.csproj" />

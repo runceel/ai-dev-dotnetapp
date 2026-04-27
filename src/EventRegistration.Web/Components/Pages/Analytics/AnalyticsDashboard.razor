@@ -1,0 +1,123 @@
+@page "/analytics"
+
+<PageTitle>統計・分析</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">統計・分析</MudText>
+
+@if (_loading || _summary is null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12" md="3">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">総イベント数</MudText>
+                <MudText Typo="Typo.h4">@_summary.TotalEvents</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">総登録数</MudText>
+                <MudText Typo="Typo.h4">@_summary.TotalRegistrations</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">参加確定 / 待機 / キャンセル</MudText>
+                <MudText Typo="Typo.h6">@_summary.TotalConfirmed / @_summary.TotalWaitListed / @_summary.TotalCancelled</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">全体キャンセル率</MudText>
+                <MudText Typo="Typo.h4">@($"{_summary.OverallCancellationRate * 100:F1}%")</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">直近 14 日間の登録／キャンセル推移</MudText>
+                @if (_chartSeries is not null && _chartLabels is not null && _chartLabels.Length > 0)
+                {
+                    <MudChart ChartType="ChartType.Line"
+                              ChartSeries="_chartSeries"
+                              XAxisLabels="@_chartLabels"
+                              Width="100%"
+                              Height="320px" />
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info">表示できる推移データがありません。</MudAlert>
+                }
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">イベント別集計</MudText>
+                @if (_eventStats is null || _eventStats.Count == 0)
+                {
+                    <MudAlert Severity="Severity.Info">集計対象のイベントがありません。</MudAlert>
+                }
+                else
+                {
+                    <MudTable Items="_eventStats" Dense="true" Hover="true">
+                        <HeaderContent>
+                            <MudTh>イベント名</MudTh>
+                            <MudTh>開催日</MudTh>
+                            <MudTh>定員</MudTh>
+                            <MudTh>確定</MudTh>
+                            <MudTh>待機</MudTh>
+                            <MudTh>キャンセル</MudTh>
+                            <MudTh>参加率</MudTh>
+                            <MudTh>キャンセル率</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="イベント名">@context.EventName</MudTd>
+                            <MudTd DataLabel="開催日">@context.ScheduledAt.LocalDateTime.ToString("yyyy/MM/dd")</MudTd>
+                            <MudTd DataLabel="定員">@context.Capacity</MudTd>
+                            <MudTd DataLabel="確定">@context.ConfirmedCount</MudTd>
+                            <MudTd DataLabel="待機">@context.WaitListedCount</MudTd>
+                            <MudTd DataLabel="キャンセル">@context.CancelledCount</MudTd>
+                            <MudTd DataLabel="参加率">@($"{context.ParticipationRate * 100:F1}%")</MudTd>
+                            <MudTd DataLabel="キャンセル率">@($"{context.CancellationRate * 100:F1}%")</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    [Inject] private GetOverallSummaryUseCase GetOverallSummaryUseCase { get; set; } = default!;
+    [Inject] private GetEventStatisticsUseCase GetEventStatisticsUseCase { get; set; } = default!;
+    [Inject] private GetDailyRegistrationTrendUseCase GetDailyRegistrationTrendUseCase { get; set; } = default!;
+
+    private bool _loading = true;
+    private OverallSummary? _summary;
+    private IReadOnlyList<EventStatistics>? _eventStats;
+    private List<ChartSeries<double>>? _chartSeries;
+    private string[]? _chartLabels;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _summary = await GetOverallSummaryUseCase.ExecuteAsync();
+        _eventStats = await GetEventStatisticsUseCase.ExecuteAsync();
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var from = today.AddDays(-13);
+        var trend = await GetDailyRegistrationTrendUseCase.ExecuteAsync(from, today);
+
+        _chartLabels = trend.Select(p => p.Date.ToString("MM/dd")).ToArray();
+        _chartSeries = new List<ChartSeries<double>>
+        {
+            new() { Name = "登録", Data = trend.Select(p => (double)p.RegistrationCount).ToArray() },
+            new() { Name = "キャンセル", Data = trend.Select(p => (double)p.CancellationCount).ToArray() },
+        };
+
+        _loading = false;
+    }
+}
