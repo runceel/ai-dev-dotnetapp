@@ -7,6 +7,8 @@ description: '7 つのカスタムエージェント（Orchestrator / Product Ma
 
 Orchestrator エージェントが駆動する、機能開発の自律ワークフローを定義する。
 
+このスキルは GitHub Issue / PR を状態管理と Agent 間コミュニケーションの正本として使用する。リポジトリ内ファイルを正本にする運用を行う場合は、`cloud-agent-lifecycle` スキルを明示的に使用する。
+
 ---
 
 ## エージェント一覧

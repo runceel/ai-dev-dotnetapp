@@ -43,6 +43,12 @@
 - .NET / C# コードは `dotnet-best-practices` に準拠する
 - 最新の .NET 10 / C# 14 / ASP.NET Core 10 / Blazor 10 の機能は `dotnet10` / `aspnetcore-blazor10` スキルで確認する
 
+### ライフサイクルスキルの使い分け
+
+`feature-lifecycle` スキルは GitHub Issue / PR を正本として使用する。
+`cloud-agent-lifecycle` スキルは GitHub Cloud Agent の readonly 制約下で、仕様・状態台帳・Agent 間ログ・PR 本文案を `.github/lifecycle/<work-id>/` 配下に保存する。
+ユーザーがどちらかのスキルを明示した場合は、その transport 方針を優先する。GitHub Cloud Agent 上で `gh` CLI または GitHub API が readonly かつユーザーがファイルベース運用を求めている場合は、`cloud-agent-lifecycle` を使用する。
+
 ## フェーズ 4: テスト
 
 | スキル | 用途 |
