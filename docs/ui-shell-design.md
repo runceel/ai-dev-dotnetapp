@@ -482,11 +482,11 @@ public static class NavigationMatchExtensions
 
 ### 7.4 ビルド・テスト実行コマンド
 
-`EventRegistration.sln` はリポジトリルート直下にあるため、**リポジトリルートから** 実行する。
+`EventRegistration.slnx` はリポジトリルート直下にあるため、**リポジトリルートから** 実行する。
 
 ```bash
-dotnet build EventRegistration.sln
-dotnet test EventRegistration.sln
+dotnet build EventRegistration.slnx
+dotnet test EventRegistration.slnx
 ```
 
 ### 7.5 カバレッジ目標

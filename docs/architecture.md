@@ -38,7 +38,7 @@
 
 ```
 ai-dev-dotnetapp/
-├── EventRegistration.sln                         # クラシック .sln 形式
+├── EventRegistration.slnx                         # XML ベースの slnx 形式
 ├── global.json                                   # SDK ピン留め: 10.0.203 (rollForward: latestPatch)
 ├── README.md
 ├── docs/
@@ -102,7 +102,7 @@ ai-dev-dotnetapp/
 ソリューションフォルダ階層（`.sln` 内、IDE 表示用）:
 
 ```
-EventRegistration.sln
+EventRegistration.slnx
 ├── Hosting
 │     ├── EventRegistration.AppHost
 │     ├── EventRegistration.ServiceDefaults
@@ -303,7 +303,7 @@ sequenceDiagram
 | Module | Registrations | `EventRegistration.Registrations.Domain` | 新規 | 空 classlib。`SharedKernel.Domain` 参照（REQ-006 / AC-015） |
 | Module | Registrations | `EventRegistration.Registrations.Application` | 新規 | 空 classlib。`Registrations.Domain` 参照 |
 | Module | Registrations | `EventRegistration.Registrations.Infrastructure` | 新規 | 空 classlib。`Registrations.Application` / `Registrations.Domain` 参照 |
-| Solution | — | `EventRegistration.sln` | 新規 | 全 12 プロジェクトを `Hosting` / `Modules/<Module>` ソリューションフォルダに登録 |
+| Solution | — | `EventRegistration.slnx` | 新規 | 全 12 プロジェクトを `Hosting` / `Modules/<Module>` ソリューションフォルダに登録 |
 | Docs | — | `docs/architecture.md` | 新規 | 本ドキュメント |
 
 ---
@@ -316,7 +316,7 @@ sequenceDiagram
 
 | レベル | 目的 | 検証方法 | 関連 AC |
 |---|---|---|---|
-| Build smoke | ソリューション全体がコンパイルできること | `dotnet build EventRegistration.sln` で **エラー 0**（CON-006 に従い警告は完了報告で列挙） | AC-001 |
+| Build smoke | ソリューション全体がコンパイルできること | `dotnet build EventRegistration.slnx` で **エラー 0**（CON-006 に従い警告は完了報告で列挙） | AC-001 |
 | Solution structure | 12 プロジェクトが登録され、ソリューションフォルダが正しく構築されていること | `dotnet sln list` の結果と REQ-003 の突合 / `.sln` 内のソリューションフォルダノード確認 | AC-005, AC-006, AC-014 |
 | Reference graph | §3.2 の必須参照が漏れなく、§3.3 の禁止参照が 0 件であること | 各 `.csproj` の `<ProjectReference>` を `dotnet list reference` で確認。`Events.* ↔ Registrations.*` の出現が 0 件 | AC-007, AC-013, AC-015 |
 | TFM 統一 | 全 12 プロジェクトが `net10.0` で統一されていること | 各 `.csproj` の `<TargetFramework>` を grep | AC-010 |
@@ -391,7 +391,7 @@ SPEC §5 の AC-001〜AC-015 と本ドキュメントの設計セクションの
 
 | AC | 内容（要約） | 関連設計セクション | 検証方法 |
 |---|---|---|---|
-| AC-001 | `dotnet build` がエラー 0 で成功 | §5 (CON-006), §8 Build smoke | `dotnet build EventRegistration.sln` |
+| AC-001 | `dotnet build` がエラー 0 で成功 | §5 (CON-006), §8 Build smoke | `dotnet build EventRegistration.slnx` |
 | AC-002 | AppHost 起動でダッシュボード URL がコンソール出力 | §4 起動シーケンス | `dotnet run --project src/EventRegistration.AppHost` の標準出力 |
 | AC-003 | ダッシュボード Resources ページで Web が `Running` 表示 | §4, §8 Launch verification | `curl -k <dashboard-url>` で 200 + 内容確認 |
 | AC-004 | Web エンドポイントで Empty テンプレートの Home が HTTP 200 | §2.1 Web 責務, §8 Launch verification | `curl -k <web-url>` で 200 |
@@ -430,7 +430,7 @@ SPEC §5 の AC-001〜AC-015 と本ドキュメントの設計セクションの
 
 | 種別 | パス |
 |---|---|
-| ソリューション | [EventRegistration.sln](../EventRegistration.sln) |
+| ソリューション | [EventRegistration.slnx](../EventRegistration.slnx) |
 | SDK ピン留め | [global.json](../global.json) |
 | AppHost エントリ | [src/EventRegistration.AppHost/AppHost.cs](../src/EventRegistration.AppHost/AppHost.cs) |
 | AppHost csproj | [src/EventRegistration.AppHost/EventRegistration.AppHost.csproj](../src/EventRegistration.AppHost/EventRegistration.AppHost.csproj) |
@@ -442,7 +442,7 @@ SPEC §5 の AC-001〜AC-015 と本ドキュメントの設計セクションの
 ### 12.2 ビルド結果（CON-006 / AC-001）
 
 ```
-$ dotnet build EventRegistration.sln
+$ dotnet build EventRegistration.slnx
 ビルドに成功しました。
     0 個の警告
     0 エラー
@@ -508,10 +508,10 @@ app.Run();
 
 ```powershell
 # 1. ビルド検証（AC-001）
-dotnet build EventRegistration.sln
+dotnet build EventRegistration.slnx
 
 # 2. プロジェクト数確認（AC-006: 12 件）
-dotnet sln EventRegistration.sln list
+dotnet sln EventRegistration.slnx list
 
 # 3. 必須参照確認（AC-015）
 dotnet list src/Modules/Events/EventRegistration.Events.Domain/EventRegistration.Events.Domain.csproj reference

@@ -1,0 +1,36 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Hosting/">
+    <Project Path="src/EventRegistration.AppHost/EventRegistration.AppHost.csproj" />
+    <Project Path="src/EventRegistration.ServiceDefaults/EventRegistration.ServiceDefaults.csproj" />
+    <Project Path="src/EventRegistration.Web/EventRegistration.Web.csproj" />
+  </Folder>
+  <Folder Name="/Modules/" />
+  <Folder Name="/Modules/Events/">
+    <Project Path="src/Modules/Events/EventRegistration.Events.Application/EventRegistration.Events.Application.csproj" />
+    <Project Path="src/Modules/Events/EventRegistration.Events.Domain/EventRegistration.Events.Domain.csproj" />
+    <Project Path="src/Modules/Events/EventRegistration.Events.Infrastructure/EventRegistration.Events.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/Modules/Notifications/">
+    <Project Path="src/Modules/Notifications/EventRegistration.Notifications.Application/EventRegistration.Notifications.Application.csproj" />
+    <Project Path="src/Modules/Notifications/EventRegistration.Notifications.Domain/EventRegistration.Notifications.Domain.csproj" />
+    <Project Path="src/Modules/Notifications/EventRegistration.Notifications.Infrastructure/EventRegistration.Notifications.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/Modules/Registrations/">
+    <Project Path="src/Modules/Registrations/EventRegistration.Registrations.Application/EventRegistration.Registrations.Application.csproj" />
+    <Project Path="src/Modules/Registrations/EventRegistration.Registrations.Domain/EventRegistration.Registrations.Domain.csproj" />
+    <Project Path="src/Modules/Registrations/EventRegistration.Registrations.Infrastructure/EventRegistration.Registrations.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/Modules/SharedKernel/">
+    <Project Path="src/Modules/SharedKernel/EventRegistration.SharedKernel.Application/EventRegistration.SharedKernel.Application.csproj" />
+    <Project Path="src/Modules/SharedKernel/EventRegistration.SharedKernel.Domain/EventRegistration.SharedKernel.Domain.csproj" />
+    <Project Path="src/Modules/SharedKernel/EventRegistration.SharedKernel.Infrastructure/EventRegistration.SharedKernel.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="src/tests/EventRegistration.Web.Tests/EventRegistration.Web.Tests.csproj" />
+  </Folder>
+</Solution>
