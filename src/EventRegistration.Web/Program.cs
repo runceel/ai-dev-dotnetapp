@@ -6,8 +6,10 @@ using EventRegistration.Notifications.Infrastructure;
 using EventRegistration.Registrations.Application.Navigation;
 using EventRegistration.Registrations.Application.Services;
 using EventRegistration.Registrations.Infrastructure;
+using EventRegistration.SharedKernel.Application.DemoData;
 using EventRegistration.Web.Adapters;
 using EventRegistration.Web.Components;
+using EventRegistration.Web.DemoData;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +32,22 @@ builder.Services.AddAnalyticsModule();
 
 // モジュール間アダプターを登録
 builder.Services.AddScoped<IEventCapacityChecker, EventCapacityCheckerAdapter>();
+
+// デモ用シードデータ投入機能を登録
+// 設定セクションが省略された場合は Development 環境のみ既定で ON とする。
+builder.Services
+    .AddOptions<DemoDataOptions>()
+    .Bind(builder.Configuration.GetSection(DemoDataOptions.SectionName))
+    .PostConfigure(o =>
+    {
+        if (!builder.Configuration.GetSection(DemoDataOptions.SectionName).Exists())
+        {
+            o.Enabled = builder.Environment.IsDevelopment();
+        }
+    });
+builder.Services.AddScoped<IDemoDataSeeder, EventsDemoDataSeeder>();
+builder.Services.AddScoped<IDemoDataSeeder, RegistrationsDemoDataSeeder>();
+builder.Services.AddHostedService<DemoDataHostedService>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

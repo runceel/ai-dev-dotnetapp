@@ -1,0 +1,29 @@
+work_id: "issue-24"
+feature: "デモ用シードデータの自動投入機能"
+entry_mode: "cloud-draft"
+transport: "repo-files"
+issue: 24
+pr:
+branch: "copilot/add-demo-seed-data-automation"
+artifacts:
+  spec: ".github/lifecycle/issue-24/spec.md"
+  implementation_plan: ".github/lifecycle/issue-24/implementation-plan.md"
+  pull_request: ".github/lifecycle/issue-24/pull-request.md"
+  log: ".github/lifecycle/issue-24/log.md"
+phase: 3
+step: "3.11"
+status: "WAITING_HUMAN"
+last_agent: "Developer"
+last_decision: "DONE"
+counters:
+  spec_review: 0
+  design_review: 0
+  build_fail: 0
+  code_review: 0
+  completion_cycle: 0
+  e2e_retry: 0
+  doc_update: 0
+outbox_status:
+  pending: 0
+  posted: 0
+updated_at: "2026-04-27T05:10:00Z"
