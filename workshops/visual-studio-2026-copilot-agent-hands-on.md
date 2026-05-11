@@ -61,7 +61,7 @@
 | 項目 | 内容 |
 |------|------|
 | IDE | Visual Studio 2026 |
-| Copilot | GitHub Copilot エージェント モードが利用可能 |
+| Copilot | GitHub Copilot エージェント モードが利用可能。使用するモデルは Claude Sonnet 4.6 を想定 |
 | SDK | .NET 10 SDK |
 | ソリューション | `EventRegistration.slnx` を Visual Studio 2026 で開いている |
 | 確認に使う画面 | ソリューション エクスプローラー、GitHub Copilot Chat、テスト エクスプローラー、Aspire AppHost |
